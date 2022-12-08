@@ -1,0 +1,23 @@
+//
+// SLSO CLR17 - https://lospec.com/palette-list/slso-clr17
+//
+
+:root {
+  --night:  #2e2c3b;
+  --dark:   #3e415f;
+  --slate:  #55607d;
+  --grey:   #747d88;
+  --sea:    #41de95;
+  --teal:   #2aa4aa;
+  --blue:   #3b77a6;
+  --green:  #249337;
+  --lime:   #56be44;
+  --lemon:  #c6de78;
+  --gold:   #f3c220;
+  --rust:   #c4651c;
+  --red:    #b54131;
+  --indigo: #61407a;
+  --violet: #8f3da7;
+  --pink:   #ea619d;
+  --bright: #c1e5ea;
+}
