@@ -1,5 +1,5 @@
 
-const { min, max, abs, sin, cos, random, pow, exp, PI } = Math;
+const { min, max, abs, sin, cos, random, pow, exp, sqrt, PI } = Math;
 
 const EPSILON = 1e-4;
 
@@ -22,4 +22,7 @@ export const getCssValue = (el, prop) =>
 
 export const pluck = (key) => (obj) =>
   obj[key]
+
+export const hyp = ([ x1, y1 ], [ x2, y2 ]) =>
+  sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2))
 

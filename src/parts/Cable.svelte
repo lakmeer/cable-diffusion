@@ -1,38 +1,46 @@
 <script lang="ts">
-  import type { Cable, Point, AnyDataflow } from "$types";
+  import type { Curve, Point, AnyDataflow } from "$types";
 
   import { cssVar } from '$utils';
+
   import dragging from '$lib/dragging';
-  import { addCable, updateCable } from "$store/cables";
 
-  export let id: string;
-  export let type: AnyDataflow;
-  export let termA: Point;
-  export let termB: Point;
-  export let ctrlA: Point;
-  export let ctrlB: Point;
-  export let color: string;
+  import { addCable, updateCable } from "$store/the-graph";
 
-  if (color.substring(0,1) == '--') color = cssVar(color);
+
+  export let id:    string;
+  export let from:  string;
+  export let to:    string;
+  export let type:  AnyDataflow;
+  export let curve: Curve;
+
+  const thisCable = { id, type, from, to, curve };
+
+  if (curve.color.substring(0,1) == '--') curve.color = cssVar(curve.color);
+
 
   // From this point on the original props will be ignored. I don't think that's
   // a good idea, but I don't know how to do integrate this with a store otherwise.
-  let thisCable:Cable = { id, type, termA, termB, ctrlA, ctrlB, color };
 
   const update = (prop) => (event) => {
-    thisCable[prop] = event.detail;
+    thisCable.curve[prop] = event.detail;
     updateCable(thisCable);
   }
+
+  const handleStyle = (prop: string) => `
+    left: ${curve[prop][0]}px;
+    top:  ${curve[prop][1]}px;
+  `
 
   addCable(thisCable);
 </script>
 
 
-<div class="Cable" style="color: {color}">
-  <div class="terminal handle" use:dragging on:drag={update('termA')} style="left: {termA[0]}px; top: {termA[1]}px" />
-  <div class="terminal handle" use:dragging on:drag={update('termB')} style="left: {termB[0]}px; top: {termB[1]}px" />
-  <div class="control  handle" use:dragging on:drag={update('ctrlA')} style="left: {ctrlA[0]}px; top: {ctrlA[1]}px" />
-  <div class="control  handle" use:dragging on:drag={update('ctrlB')} style="left: {ctrlB[0]}px; top: {ctrlB[1]}px" />
+<div id={id} class="Cable" style="color: {curve.color}">
+  <div class="terminal handle {type}" use:dragging on:drag={update('termA')} style={ handleStyle('termA') } />
+  <div class="terminal handle {type}" use:dragging on:drag={update('termB')} style={ handleStyle('termB') } />
+  <div class="control  handle {type}" use:dragging on:drag={update('ctrlA')} style={ handleStyle('ctrlA') } />
+  <div class="control  handle {type}" use:dragging on:drag={update('ctrlB')} style={ handleStyle('ctrlB') } />
 </div>
 
 

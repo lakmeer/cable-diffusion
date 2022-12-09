@@ -13,7 +13,7 @@ type DragState = {
 // Dragging Hook
 //
 
-export default (node:HTMLElement, params) => {
+export default (node:HTMLElement, params?) => {
 
   // Node is blank, try again when the DOM is ready
   if (!node) return;
@@ -61,10 +61,12 @@ export default (node:HTMLElement, params) => {
   document.addEventListener('mousemove', move)
 
   // onDestroy
-  return () => {
-    node.removeEventListener('mousedown', start)
-    document.removeEventListener('mouseup', stop)
-    document.removeEventListener('mousemove', move)
+  return {
+    destroy () {
+      node.removeEventListener('mousedown', start)
+      document.removeEventListener('mouseup', stop)
+      document.removeEventListener('mousemove', move)
+    }
   }
 }
 

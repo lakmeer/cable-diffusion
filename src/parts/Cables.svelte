@@ -1,10 +1,12 @@
 <script lang="ts">
+  import type { Curve } from "$types";
 
-  import { onMount, setContext } from 'svelte';
+  import { onMount, tick } from 'svelte';
 
-  import cableStore from "$store/cables";
+  import theGraph from "$store/the-graph";
 
-  import type { Point, Cable, AnyDataflow } from "$types";
+
+  // State
 
   let width:number = 0;
   let height:number = 0;
@@ -13,16 +15,20 @@
   let ctx: CanvasRenderingContext2D;
 
   let cables = [];
-  cableStore.subscribe((all) => cables = all);
+
+  theGraph.subscribe( ({ cables: _cables }) => {
+    cables = _cables;
+    if (ctx) redraw();
+  });
 
 
   // Drawing Functions
 
-  const curve = (color: string, start: Point, end: Point, ctlA: Point, ctlB: Point) => {
-    if (!start || !end) console.log(start, end);
+  const drawCurve = (curve:Curve) => {
+    const { color, termA, termB, ctrlA, ctrlB } = curve;
 
-    const [ x1, y1 ] = start;
-    const [ x2, y2 ] = end;
+    // NOTE: Haven't seen this bug in a while
+    if (!termA || !termB) console.log(termA, termB);
 
     ctx.strokeStyle = color;
 
@@ -30,41 +36,36 @@
     ctx.lineWidth = 1;
     ctx.setLineDash([ 10, 10 ]);
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(...ctlA);
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(...ctlB);
+    ctx.moveTo(...termA);
+    ctx.lineTo(...ctrlA);
+    ctx.moveTo(...termB);
+    ctx.lineTo(...ctrlB);
     ctx.stroke();
 
     // Main cable
     ctx.lineWidth = 4;
     ctx.setLineDash([]);
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.bezierCurveTo(...ctlA, ...ctlB, x2, y2);
+    ctx.moveTo(...termA);
+    ctx.bezierCurveTo(...ctrlA, ...ctrlB, ...termB);
     ctx.stroke();
-
   };
 
-  const drawCable = (cable: Cable) => {
-    const { color, termA, termB, ctrlA, ctrlB } = cable;
-    curve(color, termA, termB, ctrlA, ctrlB);
-  };
+  const redraw = async () => {
+    await tick();
+    ctx.clearRect(0, 0, width, height);
+    cables.forEach(cable => drawCurve(cable.curve));
+  }
 
 
   // Init
 
-  onMount(() => {
-    ctx = canvas.getContext('2d');
+  onMount(() => ctx = canvas.getContext('2d'));
+
+  $: if (canvas) {
     canvas.width  = width;
     canvas.height = height;
-  });
-
-  $: {
-    if (ctx) {
-      ctx.clearRect(0, 0, width, height);
-      cables.forEach(drawCable);
-    }
+    redraw();
   }
 </script>
 

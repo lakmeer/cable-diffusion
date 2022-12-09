@@ -1,17 +1,18 @@
 <script lang="ts">
-import type AnyDataFlow from "$types";
+  import type { AnyDataflow } from "$types";
 
-export let type:AnyDataFlow;
-export let label:string = "Untitled Input";
-export let filled:boolean = false;
-export let multiline:boolean = false;
-export let mode: 'in' | 'out' = 'out';
+  export let id: string;
+  export let type:AnyDataflow;
+  export let label:string = "Untitled Input";
+  export let filled:boolean = false;
+  export let multiline:boolean = false;
+  export let mode: 'in' | 'out' = 'out';
 
-let value;
+  let value;
 </script>
 
 
-<div class="Port {mode}" class:filled data-type={type}> 
+<div id={id} class="Port {mode}" class:filled data-type={type}> 
   <span>{ label }</span>
 
   {#if mode === "in"}
