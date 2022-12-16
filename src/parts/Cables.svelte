@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Curve } from "$types";
 
-  import { onMount, tick } from 'svelte';
+  import { onMount } from 'svelte';
 
   import theGraph from "$store/the-graph";
 
@@ -25,6 +25,8 @@
   // Drawing Functions
 
   const drawCurve = (curve:Curve) => {
+    console.log("drawCurve", curve);
+
     const { color, termA, termB, ctrlA, ctrlB } = curve;
 
     // NOTE: Haven't seen this bug in a while
@@ -51,11 +53,23 @@
     ctx.stroke();
   };
 
-  const redraw = async () => {
-    await tick();
+  const redraw = () => {
     ctx.clearRect(0, 0, width, height);
     cables.forEach(cable => drawCurve(cable.curve));
   }
+
+
+
+  // TODO
+  //
+  // - Might need to replace svelte/store with custom mechanism
+  // - setContext?
+  // - Create unique subscription methods for each type, or take
+  //    a unique id to give a custom subscriber
+  //    - Update UI when subscription fires
+  //    - Push data back into store when UI changes
+
+
 
 
   // Init
@@ -67,6 +81,8 @@
     canvas.height = height;
     redraw();
   }
+
+  theGraph.subscribe(() =>  {if (ctx) { redraw }})
 </script>
 
 

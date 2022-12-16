@@ -48,14 +48,6 @@ export type AnyDataflow = string
 
 export type Point = [ number, number ]
 
-export type Cable = {
-  id:    string;
-  from:  string,
-  to:    string,
-  type:  string,
-  curve: Curve
-}
-
 export type Curve = {
   color: string,
   termA: Point,

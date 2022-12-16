@@ -5,7 +5,7 @@
 
   import dragging from '$lib/dragging';
 
-  import { addCable, updateCable } from "$store/the-graph";
+  import { addCable } from "$store/the-graph";
 
 
   export let id:    string;
@@ -24,7 +24,6 @@
 
   const update = (prop) => (event) => {
     thisCable.curve[prop] = event.detail;
-    updateCable(thisCable);
   }
 
   const handleStyle = (prop: string) => `

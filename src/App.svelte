@@ -1,116 +1,69 @@
 <script lang="ts">
-  import type { Point, Curve, Cable } from '$types';
 
-  const { min } = Math;
+  import type { Node } from "$lib/graph/types"
 
-  import { cssVar, hyp } from '$utils';
+  import { loadSpec, allNodes, runGraph } from '$store/the-graph';
 
-  import Cables from "$parts/Cables.svelte";
-  import Cable_ from "$parts/Cable.svelte";
+  import { NodeSpec } from '$lib/graph/spec'
 
+
+  // Setup
+
+  loadSpec({
+    nodes: [
+      new NodeSpec('Const',    "a").state('value', 3).at(50, 100),
+      new NodeSpec('Const',    "b").state('value', 7).at(50, 500),
+      new NodeSpec('Add',      "c").at(450, 300),
+      new NodeSpec('Output', "msg").at(850, 300),
+    ],
+    edges: [
+      { from: { id: 'a', port: 'out' }, to: { id: 'c',   port: 'in0' } },
+      { from: { id: 'b', port: 'out' }, to: { id: 'c',   port: 'in1' } },
+      { from: { id: 'c', port: 'out' }, to: { id: 'msg', port: 'text' } },
+    ]
+  })
+
+  runGraph();
+
+
+  // UI
+
+  let nodes:Node[] = $allNodes;
+
+  import ConstNode  from '$nodes/Const.svelte';
+  import AddNode    from '$nodes/Add.svelte';
+  import OutputNode from '$nodes/Output.svelte';
   import PromptNode from "$nodes/Prompt.svelte";
   import SpreadNode from "$nodes/Spread.svelte";
   import RangeNode  from "$nodes/Range.svelte";
-
-  import theGraph from "$store/the-graph";
-
-
-  // Master state
-
-  let nodes = [
-    { id: "", type: 'Prompt', x: 50,  y: 250, state: {} },
-    { id: "", type: 'Spread', x: 400, y: 500, state: {} },
-    { id: "", type: 'Range',  x: 850, y: 750, state: {} },
-    { id: "", type: 'Range',  x: 400, y: 850, state: {} },
-  ]
-
-  let cables = [
-    {
-      id: "",
-      type:  'number',
-      from:  "0:out",
-      to:    "1:mid",
-      curve: null
-    },
-    {
-      id: "",
-      type:  'number',
-      from:  "1:out",
-      to:    "2:mid",
-      curve: null
-    },
-    {
-      id: "",
-      type:  'string',
-      from:  "3:out",
-      to:    "2:steps",
-      curve: null
-    },
-  ];
-
-
-  // Autogenerate node id's
-
-  nodes.forEach((node, ix) => {
-    node.id = ix.toString();
-  });
-
-
-  // Autogenerate cable curves
-
-  const tempColors = [ 'blue', 'gold', 'red', 'gold' ]
-
-  const findNode = (nodeId:string) => nodes.find(node => node.id === nodeId)
-
-  // @ts-ignore
-  const getPortOffset = (node, portId) => {
-    return [ 0, 73 ]
-  }
-
-  cables.forEach((cable, ix) => {
-    const [ fromNodeId, fromPortId ] = cable.from.split(':');
-    const [ toNodeId,   toPortId   ] = cable.to.split(':');
-
-    const fromNode = findNode(fromNodeId);
-    const toNode   = findNode(toNodeId);
-
-    const [ fromX, fromY ] = getPortOffset(fromNode, fromPortId);
-    const [ toX,   toY   ] = getPortOffset(toNode,   toPortId);
-
-    const termA:Point = [ fromNode.x + fromX + 300, fromNode.y + fromY + 108 ];
-    const termB:Point = [   toNode.x + toX,         toNode.y + toY   ];
-
-    const strength = min(150, hyp(termA, termB) / 2);
-
-    const ctrlA:Point = [ termA[0] + strength, termA[1] ];
-    const ctrlB:Point = [ termB[0] - strength, termB[1] ];
-
-    const curve:Curve = { termA, termB, ctrlA, ctrlB, color: cssVar(tempColors[ix]) }
-
-    cable.id = ix.toString();
-    cable.curve = curve;
-  })
-
-  theGraph.set({ nodes, cables: cables as Cable[] });
 </script>
-
 
 <main>
   <div class="backdrop">
+    <!--
     <Cables>
       {#each cables as cable, ix}
         <Cable_ id={ix.toString()} {...cable} />
       {/each}
     </Cables>
+    --> 
   </div>
 
-  {#each nodes as node, ix}
-    {#if node.type == 'Prompt'}
-      <PromptNode id={ix.toString()} {...node} />
+  {#each nodes as node (node.id)}
+    {#if      node.type == 'Const'}
+      <ConstNode  id={node.id} />
+    {:else if node.type == 'Add'}
+      <AddNode    id={node.id} />
+    {:else if node.type == 'Output'}
+      <OutputNode id={node.id} />
+    {:else if node.type == 'Prompt'}
+      <PromptNode id={node.id} />
     {:else if node.type == 'Spread'}
-      <SpreadNode id={ix.toString()} {...node} />
+      <SpreadNode id={node.id} />
     {:else if node.type == 'Range'}
-      <RangeNode  id={ix.toString()} {...node} />
+      <RangeNode  id={node.id} />
+    {:else}
+      <div>Unknown node type: {node.type}</div>
     {/if}
   {/each}
 </main>

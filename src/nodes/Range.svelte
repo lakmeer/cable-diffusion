@@ -7,12 +7,12 @@
 
 <Node id={id} title="Range" color="--red" {...$$props}>
   <div class="PortGroup" slot="inputs">
-    <Port id="min"  label="Min"   mode="in" type="number" />
-    <Port id="max"  label="Max"   mode="in" type="number" />
-    <Port id="step" label="Steps" mode="in" type="number" />
+    <Port name="min"  label="Min"   mode="in" type="number" />
+    <Port name="max"  label="Max"   mode="in" type="number" />
+    <Port name="step" label="Steps" mode="in" type="number" />
   </div>
 
   <div class="PortGroup" slot="outputs">
-    <Port id="out" label="value" mode="out" type="vector" />
+    <Port name="out" label="value" mode="out" type="vector" />
   </div>
 </Node>

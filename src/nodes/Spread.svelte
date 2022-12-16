@@ -7,9 +7,9 @@
 
 <Node id={id} title="Spread" color="--blue" {...$$props}>
   <div class="PortGroup" slot="inputs">
-    <Port id="mid"  label="seed"  mode="in" type="number" />
-    <Port id="step" label="step"  mode="in" type="number" filled />
-    <Port id="mid"  label="times" mode="in" type="number" />
+    <Port name="mid"   label="Seed"  mode="in" type="number" />
+    <Port name="step"  label="Step"  mode="in" type="number" filled />
+    <Port name="times" label="Times" mode="in" type="number" />
   </div>
 
   <div class="NodeContent">
@@ -17,6 +17,6 @@
   </div>
 
   <div class="PortGroup" slot="outputs">
-    <Port id="out" label="value" mode="out" type="number" />
+    <Port name="out" label="value" mode="out" type="number" />
   </div>
 </Node>

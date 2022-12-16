@@ -5,11 +5,11 @@
 
   // Semantic color names: Data types
 
-  --col-string:  var(--gold);
-  --col-number:  var(--blue);
-  --col-config:  var(--green);
-  --col-vector:  var(--red);
-  --col-gen:     var(--pink);
+  --type-string:  var(--gold);
+  --type-number:  var(--blue);
+  --type-config:  var(--green);
+  --type-vector:  var(--red);
+  --type-gen:     var(--pink);
 
 
   // Semantic color names: UI Elements
@@ -20,6 +20,7 @@
   --node-text-color:  var(--bright);
   --highlight-color:  rgba(255, 230, 200, 0.2);
   --shade-color:      rgba(46, 44, 59, 0.2);
+  --error:            var(--red);
 
 
   // Variables
@@ -30,7 +31,7 @@
   --node-radius: 0.4rem;
   --node-radius-minus-one: 0.47rem;
   --sigil-size: 1.8rem;
-  --port-height: 0.8rem;
+  --port-height: 1.1rem;
   --input-height: 1.8rem;
 
 
@@ -58,3 +59,50 @@
 body {
   margin: 0;
 }
+
+button {
+  font-size: 1rem;
+  border: 1px solid var(--highlight-color);
+  background-color: transparent;
+  font-family: inherit;
+  padding: 0 1rem;
+  height: 2rem;
+  line-height: 2rem;
+  border-radius: 3rem;
+  white-space: nowrap;
+
+  background-image: linear-gradient(
+    to bottom right,
+    var(--highlight-color) 10%,
+    var(--shade-color) 100%
+  );
+  text-shadow: 0px 1px 3px var(--shade-color), 2px 2px 0px var(--shade-color);
+  mix-blend-mode: luminosity;
+
+  background-position: 0 0;
+  background-size: 100% 100%;
+  cursor: pointer;
+  transition:
+    border-color 0.1s ease-in-out,
+    background-size 0.1s ease-in-out,
+    background-position 0.1s ease-in-out;
+
+  &:hover {
+    border-color: var(--bright);
+  }
+
+  &:active {
+    border-color: var(--night);
+    background-size: 200% 200%;
+    background-position: 100% 100%;
+  }  
+}
+
+
+// Aniamtions n stuff
+
+@keyframes progress {
+  from { background-position: 0 0; }
+  to { background-position: 40px 0; }
+}
+

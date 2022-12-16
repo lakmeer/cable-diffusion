@@ -1,0 +1,201 @@
+{
+  "nodes": [
+    {
+      "id": "0",
+      "type": "lifecycle/onStart",
+      "metadata": {
+        "positionX": "0",
+        "positionY": "0"
+      },
+      "flows": {
+        "flow": {
+          "nodeId": "10",
+          "socket": "flow"
+        }
+      }
+    },
+    {
+      "id": "1",
+      "type": "math/float",
+      "metadata": {
+        "positionX": "200",
+        "positionY": "0"
+      },
+      "parameters": {
+        "a": {
+          "value": 3
+        }
+      }
+    },
+    {
+      "id": "2",
+      "type": "math/pow/float",
+      "metadata": {
+        "positionX": "400",
+        "positionY": "0"
+      },
+      "parameters": {
+        "b": {
+          "value": 1
+        },
+        "a": {
+          "link": {
+            "nodeId": "1",
+            "socket": "result"
+          }
+        }
+      }
+    },
+    {
+      "id": "3",
+      "type": "math/pow/float",
+      "metadata": {
+        "positionX": "600",
+        "positionY": "0"
+      },
+      "parameters": {
+        "b": {
+          "value": 2
+        },
+        "a": {
+          "link": {
+            "nodeId": "1",
+            "socket": "result"
+          }
+        }
+      }
+    },
+    {
+      "id": "4",
+      "type": "math/pow/float",
+      "metadata": {
+        "positionX": "800",
+        "positionY": "0"
+      },
+      "parameters": {
+        "b": {
+          "value": 3
+        },
+        "a": {
+          "link": {
+            "nodeId": "1",
+            "socket": "result"
+          }
+        }
+      }
+    },
+    {
+      "id": "5",
+      "type": "math/multiply/float",
+      "metadata": {
+        "positionX": "1000",
+        "positionY": "0"
+      },
+      "parameters": {
+        "b": {
+          "value": 3
+        },
+        "a": {
+          "link": {
+            "nodeId": "2",
+            "socket": "result"
+          }
+        }
+      }
+    },
+    {
+      "id": "6",
+      "type": "math/add/float",
+      "metadata": {
+        "positionX": "1200",
+        "positionY": "0"
+      },
+      "parameters": {
+        "a": {
+          "link": {
+            "nodeId": "5",
+            "socket": "result"
+          }
+        },
+        "b": {
+          "link": {
+            "nodeId": "3",
+            "socket": "result"
+          }
+        }
+      }
+    },
+    {
+      "id": "7",
+      "type": "math/negate/float",
+      "metadata": {
+        "positionX": "1400",
+        "positionY": "0"
+      },
+      "parameters": {
+        "a": {
+          "link": {
+            "nodeId": "4",
+            "socket": "result"
+          }
+        }
+      }
+    },
+    {
+      "id": "8",
+      "type": "math/add/float",
+      "metadata": {
+        "positionX": "1600",
+        "positionY": "0"
+      },
+      "parameters": {
+        "a": {
+          "link": {
+            "nodeId": "6",
+            "socket": "result"
+          }
+        },
+        "b": {
+          "link": {
+            "nodeId": "7",
+            "socket": "result"
+          }
+        }
+      }
+    },
+    {
+      "id": "9",
+      "type": "math/toString/float",
+      "metadata": {
+        "positionX": "1800",
+        "positionY": "0"
+      },
+      "parameters": {
+        "a": {
+          "link": {
+            "nodeId": "8",
+            "socket": "result"
+          }
+        }
+      }
+    },
+    {
+      "id": "10",
+      "type": "debug/log",
+      "metadata": {
+        "positionX": "2000",
+        "positionY": "0"
+      },
+      "parameters": {
+        "text": {
+          "link": {
+            "nodeId": "9",
+            "socket": "result"
+          }
+        }
+      }
+    }
+  ],
+  "variables": [],
+  "customEvents": []
+}

@@ -1,6 +1,8 @@
 lockfileVersion: 5.3
 
 specifiers:
+  '@behave-graph/core': ^0.9.10
+  '@fortawesome/free-solid-svg-icons': ^6.2.1
   '@svelte-put/movable': ^1.3.0
   '@sveltejs/vite-plugin-svelte': ^1.1.0
   '@tsconfig/svelte': ^3.0.0
@@ -11,12 +13,18 @@ specifiers:
   postcss-nested: ^6.0.0
   svelte: ^3.52.0
   svelte-check: ^2.9.2
+  svelte-fa: ^3.0.3
   svelte-preprocess: ^4.10.7
   tslib: ^2.4.0
   typescript: ^4.6.4
   vite: ^3.2.3
 
+dependencies:
+  '@fortawesome/free-solid-svg-icons': 6.2.1
+  svelte-fa: 3.0.3
+
 devDependencies:
+  '@behave-graph/core': 0.9.11
   '@svelte-put/movable': 1.3.0
   '@sveltejs/vite-plugin-svelte': 1.4.0_svelte@3.53.1+vite@3.2.4
   '@tsconfig/svelte': 3.0.0
@@ -33,6 +41,10 @@ devDependencies:
   vite: 3.2.4
 
 packages:
+
+  /@behave-graph/core/0.9.11:
+    resolution: {integrity: sha512-6jal+yvJOVAo4/+RVcX5cJi1PHgQmeSP/RFnOmdLVWfaWPPLUwQ/bgH4GKrU0RIzK6xwCEwYp+RQnWMkmBDk3g==}
+    dev: true
 
   /@esbuild/android-arm/0.15.18:
     resolution: {integrity: sha512-5GT+kcs2WVGjVs7+boataCkO5Fg0y4kCjzkB5bAip7H4jfnOS3dA6KPiww9W1OEKTKeAcUVhdZGvgI65OXmUnw==}
@@ -51,6 +63,20 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@fortawesome/fontawesome-common-types/6.2.1:
+    resolution: {integrity: sha512-Sz07mnQrTekFWLz5BMjOzHl/+NooTdW8F8kDQxjWwbpOJcnoSg4vUDng8d/WR1wOxM0O+CY9Zw0nR054riNYtQ==}
+    engines: {node: '>=6'}
+    requiresBuild: true
+    dev: false
+
+  /@fortawesome/free-solid-svg-icons/6.2.1:
+    resolution: {integrity: sha512-oKuqrP5jbfEPJWTij4sM+/RvgX+RMFwx3QZCZcK9PrBDgxC35zuc7AOFsyMjMd/PIFPeB2JxyqDr5zs/DZFPPw==}
+    engines: {node: '>=6'}
+    requiresBuild: true
+    dependencies:
+      '@fortawesome/fontawesome-common-types': 6.2.1
+    dev: false
 
   /@jridgewell/resolve-uri/3.1.0:
     resolution: {integrity: sha512-F2msla3tad+Mfht5cJq7LSXcdudKTWCVYUgw6pLFOOHSTtZlj6SWNYAp+AhuqLmWdBO2X5hPrLcu8cVP8fy28w==}
@@ -948,6 +974,10 @@ packages:
       - stylus
       - sugarss
     dev: true
+
+  /svelte-fa/3.0.3:
+    resolution: {integrity: sha512-GIikJjcVCD+5Y/x9hZc2R4gvuA0gVftacuWu1a+zVQWSFjFYZ+hhU825x+QNs2slsppfrgmFiUyU9Sz9gj4Rdw==}
+    dev: false
 
   /svelte-hmr/0.15.1_svelte@3.53.1:
     resolution: {integrity: sha512-BiKB4RZ8YSwRKCNVdNxK/GfY+r4Kjgp9jCLEy0DuqAKfmQtpL38cQK3afdpjw4sqSs4PLi3jIPJIFp259NkZtA==}
