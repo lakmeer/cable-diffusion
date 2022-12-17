@@ -1,15 +1,19 @@
 <script lang="ts">
-  import { runNode, nodeSpy, updateNode } from '$store/the-graph';
+  import { runNode, nodeSpy, updateNode, addPort } from '$store/the-graph';
 
-  import RunButton    from "$parts/RunButton.svelte";
+  import IconButton   from "$parts/IconButton.svelte";
   import NodeTitleBar from "$parts/NodeTitleBar.svelte";
 
+
   // Props
+
   export let id: string;
   export let title: string = "Untitled Node";
   export let color: string = "--blue"; // Should be a css var
 
   let node = nodeSpy(id);
+  let run  = () => runNode(id)
+  let add  = () => addPort(id)
 
 
   // Drag setup
@@ -17,11 +21,11 @@
   import dragging from "$lib/dragging";
 
   let dom:HTMLElement, grip:HTMLElement;
+
   $: dragging(grip, { target: dom })
 
-  const dragged = (event) => {
-    updateNode(id, old => ({ ...old, x: event.detail[0], } ))
-  }
+  const dragged = ({ detail }) =>
+    updateNode(id, x => ({ ...x, x: detail[0], y: detail[1] }))
 
 
   // Style
@@ -36,7 +40,17 @@
 
 <div class="Node" bind:this={dom} style="{css}">
   <div class="NodeBody">
-    <NodeTitleBar {title} bind:grip on:drag={dragged} />
+    <NodeTitleBar {title} bind:grip on:drag={dragged}>
+      <svelte:fragment slot="left-actions">
+        {#if $node.dynamic}
+          <IconButton icon="plus" on:click={add} />
+        {/if}
+      </svelte:fragment>
+
+      <svelte:fragment slot="right-actions">
+        <IconButton icon="run" spin={$node.state.busy} on:click={run}  />
+      </svelte:fragment>
+    </NodeTitleBar>
 
     <div class="body">
       <div class="inputs">
@@ -44,11 +58,7 @@
       </div>
 
       <div class="inner">
-        <slot name="body">
-          <pre>{ JSON.stringify($node.state, null, 2) }</pre>
-        </slot>
-
-        <RunButton running={$node.busy} on:run={() => runNode(id)} />
+        <slot name="body" />
       </div>
 
       <div class="outputs">
@@ -58,8 +68,8 @@
   </div>
 
   <div class="status-indicator"
-    class:running={$node.busy}
-    class:error={$node.error} />
+    class:running={$node.state.busy}
+    class:error={$node.state.error} />
 </div>
 
 
@@ -85,6 +95,7 @@
       flex-direction: column;
       gap: var(--std-gap);
       padding: calc(2 * var(--std-pad));
+      &:empty { padding: 0; }
     }
 
     .inputs > :global(div), .outputs > :global(div) {
@@ -137,8 +148,8 @@
       --stripe-off: rgba(255,255,255,0.2);
       opacity: 1.0;
       background-color: var(--red);
-      background-blend-mode:luminosity;
       animation-duration: 2s;
+      background-blend-mode: luminosity;
     }
   }
 

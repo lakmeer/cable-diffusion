@@ -8,7 +8,7 @@
 
   let node = nodeSpy(id);
 
-  $: displayValue = JSON.stringify($node.inports.text.value, null, 2)
+  $: displayValue = JSON.stringify($node.state.last, null, 2)
 </script>
 
 

@@ -56,9 +56,16 @@
   -webkit-text-size-adjust: 100%;
 }
 
+
+// Reset
+
 body {
   margin: 0;
 }
+
+
+
+// Custom Button
 
 button {
   font-size: 1rem;
@@ -100,6 +107,13 @@ button {
 
 
 // Aniamtions n stuff
+
+.debug-traces {
+  &, & * {
+    box-shadow: 0 0 0 1px white inset;
+  }
+}
+
 
 @keyframes progress {
   from { background-position: 0 0; }

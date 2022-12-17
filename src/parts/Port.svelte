@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { AnyDataflow } from "$types";
 
+  import { updateNodePort } from "$store/the-graph";
+
   // Standard Port props
   export let type:AnyDataflow;
   export let label:string;
@@ -9,8 +11,8 @@
   export let x: number = 0;
   export let y: number = 0;
 
-  // Will get value set by parent node, but report updates directly to the graph
-  // Parent node doesn't have to worry about bindings
+  // Will get value set by parent node, but report updates directly
+  // to the graph. Parent node doesn't have to worry about bindings
   export let value;
 
   // UI-specific props
@@ -28,6 +30,12 @@
     x = dom.getBoundingClientRect().x;
     y = dom.getBoundingClientRect().y;
   }
+
+  $: updateNodePort(nodeId, name, { value });
+
+  import { createEventDispatcher } from "svelte"
+  const emit = createEventDispatcher()
+  const onChange = (event) => emit('updated', event.target.value)
 </script>
 
 
@@ -44,12 +52,12 @@
 
   {#if mode === "in"}
     {#if type === "number"}
-      <input type="number" bind:value disabled={filled} />
+      <input type="number" bind:value on:change={onChange} disabled={filled} />
     {:else if type === "string"}
       {#if multiline}
-        <textarea bind:value rows="4" />
+        <textarea rows="4" bind:value on:change={onChange} disabled={filled} />
       {:else}
-        <input type="text" bind:value/>
+        <input type="text" bind:value on:change={onChange} disabled={filled} />
       {/if}
     {/if}
   {/if}
@@ -72,24 +80,35 @@
     align-items: center;
 
     span {
+      display: block;
       max-width: 5rem;
       margin: 0;
       margin-right: 1rem;
+      font-size: 1.2rem;
     }
 
 
     // Input types
 
-    input {
-      flex: 1;
+    input, textarea {
+      display: block;
       height: var(--input-height);
-      border: 1px solid var(--border-color);
+      border: 0px solid var(--border-color);
       border-radius: 4px;
       font-size: 1.1rem;
+      width: 100%;
       color: var(--text-color);
-      max-width: 100%;
       padding-left: 0.4rem;
       padding-top: 0.07rem;
+      background: var(--night);
+
+      &[type="number"] {
+        max-width: 5rem;
+      }
+
+      &[disabled] {
+        opacity: 0.5;
+      }
     }
 
     textarea {

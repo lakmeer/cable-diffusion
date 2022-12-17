@@ -1,9 +1,7 @@
 <script lang="ts">
-
   import type { Node } from "$lib/graph/types"
 
   import { loadSpec, allNodes, runGraph } from '$store/the-graph';
-
   import { NodeSpec } from '$lib/graph/spec'
 
 
@@ -11,10 +9,10 @@
 
   loadSpec({
     nodes: [
-      new NodeSpec('Const',    "a").state('value', 3).at(50, 100),
-      new NodeSpec('Const',    "b").state('value', 7).at(50, 500),
-      new NodeSpec('Add',      "c").at(450, 300),
-      new NodeSpec('Output', "msg").at(850, 300),
+      new NodeSpec('Const',    "a").at(50,  50).state('value', 3),
+      new NodeSpec('Const',    "b").at(50, 280).state('value', 7),
+      new NodeSpec('Add',      "c").at(450, 150),
+      new NodeSpec('Output', "msg").at(850, 150),
     ],
     edges: [
       { from: { id: 'a', port: 'out' }, to: { id: 'c',   port: 'in0' } },

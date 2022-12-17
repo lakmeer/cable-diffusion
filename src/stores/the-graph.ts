@@ -1,9 +1,12 @@
 
 import type { Readable, WritableStore } from 'svelte/store'
-import type { Graph, Node, Edge, Port } from "$lib/graph/types"
+import type { Graph, Node, Edge } from "$lib/graph/types"
 
 import { get, writable, derived } from 'svelte/store'
-import { log, blue, sleep, defer } from "$utils"
+import { now, red, blue, after, defer } from "$utils"
+
+const ENABLE_LOGGING = true
+
 
 
 //
@@ -15,7 +18,7 @@ let theGraph:WritableStore<Graph> = writable({ nodes: [], edges: [] })
 
 
 //
-// Derived Stores
+// Stores and Derived Stores
 //
 
 export default theGraph
@@ -28,6 +31,7 @@ export const nodeSpy = (nodeId):Readable<Node> =>
 
 export const allEdges:Readable<Edge[]> =
   derived(theGraph, $graph => $graph.edges)
+
 
 
 //
@@ -96,64 +100,81 @@ export const addEdge = (edge:Edge) =>
 export const formatNode = (node:Node) =>
   `#${node.id}<${node.type}>`
 
-export const logNode = (node, ...rest) => {}
-  //blue(`${formatNode(node)} =>`, ...rest)
+export const logNode = (node, ...rest) =>
+  ENABLE_LOGGING && blue(`${formatNode(node)} =>`, ...rest)
+
+export const warnNode = (node, ...rest) =>
+  ENABLE_LOGGING && red(`${formatNode(node)} =>`, ...rest)
 
 export const dumpJson = () =>
   JSON.stringify(get(theGraph), null, 2)
+
 
 
 //
 // Execution
 //
 
-export const runNode = (nodeId) => runSingleNode(nodeId, true)
+export const runNode = (nodeId:string) => runSingleNode(nodeId, true)
 
-const runSingleNode = async (nodeId, force = false) => {
+const runSingleNode = async (nodeId:string, force = false) => {
+
+  const time = now()
   const node = get(nodeSpy(nodeId))
 
-  if (!node)     return console.warn("Couldn't find node with id", nodeId)
-  if (node.busy) return console.warn("Node is busy", nodeId)
+  if (!node) {
+    return console.warn("Couldn't find node with id", nodeId)
+  }
 
-  logNode(node, 'Running...', force ? '(forced)' : '')
+  if (node.busy && node.blocking) {
+    return warnNode(node, "is busy");
+  }
 
+  logNode(node, (time - node.state.time), node.debounce)
 
-  // Nodes will do computation with the `compute` method, which will take the current
-  // state and the inport group, and should return Promise<Result<NodeState, Err>>
-  // state. State can include whatever it likes for a particular node but must
-  // have an 'out' property, which will be propagated to the outport.
+  updateNodeState(nodeId, { busy: true, bounced: false })
 
-  updateNode(nodeId, { busy: true })
+  logNode(node, 'Running...' + (force ? '(forced)' : ''))
 
   const result = await node.compute(node.state, node.inports)
 
   if (!result.ok) {
     console.error(formatNode(node), "computation failed:", result.error, node.state, node.inports)
-    return updateNode(nodeId, { error: true, busy: false })
+    return updateNodeState(nodeId, { error: true, busy: false, time })
   }
 
   const newState = result.unwrap()
 
-  // If node's computer didn't set `out` correctly, there's a problem
-  if (newState.out === undefined || newState.out === null) {
-    if (node.type !== 'Output') { // Unless it was Output
-      console.error(formatNode(node), "`out` not set:", newState)
-      return updateNode(nodeId, { error: true, busy: false })
-    }
+  // If node's computer didn't set `value` correctly, there's a problem
+  if (newState.value === undefined || newState.value === null) {
+    console.error(formatNode(node), "`value` not set:", newState)
+    return updateNodeState(nodeId, { error: true, busy: false, time })
   }
 
-  const changed = JSON.stringify(newState) !== JSON.stringify(node.state)
+  const changed = JSON.stringify(newState.value)
+              !== JSON.stringify(node.state.value)
 
   if (changed) {
-    logNode(node, node.state, "=>", newState)
+    logNode(node, node.state.value, "=>", newState.value)
   } else if (!changed && force) {
     logNode(node, 'no change (but updates were forced)')
   } else {
     logNode(node, 'no change')
-    return updateNode(nodeId, { busy: false, error: false })
+    return updateNodeState(nodeId, { busy: false, error: false, time })
   }
 
-  updateNode(nodeId, { busy: false, error: false, state: newState })
+  updateNodeState(nodeId, { ...newState, busy: false, error: false, time })
+
+  if (time - node.state.time <= node.debounce) {
+    if (!node.state.bounced) {
+      updateNodeState({ bounced: true, time })
+      setTimeout(() => {
+        logNode(node, "debounce callback")
+        runSingleNode(nodeId)
+      }, time - node.debounce)
+      return warnNode(node, "debounced")
+    }
+  }
 
 
   // Find connected edges and update inport value with new value
@@ -163,7 +184,7 @@ const runSingleNode = async (nodeId, force = false) => {
       .filter(e => e.from.id === nodeId) // Get edges from this outport
       .filter(e => e.to.id   !== nodeId) // Never link to self
       .map(e => {
-        updateNodePort(e.to.id, e.to.port, { value: newState.out })
+        updateNodePort(e.to.id, e.to.port, { value: newState.value })
         return e.to.id
       })
 
@@ -176,21 +197,31 @@ const runSingleNode = async (nodeId, force = false) => {
   logNode(node, 'Done')
 }
 
-export const runGraph = async (graph: Graph) =>
+
+export const runGraph = async () => {
+  if (ENABLE_LOGGING) {
+    console.clear()
+    red("New graph run...")
+  }
+
   await Promise.all(get(allNodes)
     .filter(n => !get(allEdges).some(e => e.to.id === n.id))
     .map(n => runSingleNode(n.id, true)))
-
-/*
-const addPort = (nodeId:string, port:Port) => {
-  const node = testGraph.nodes.find(n => n.id === nodeId)
-  if (!node) throw new Error(`Node ${nodeId} not found`)
-  const portId = Object.keys(node.inports).length
-  if (node.inports[portId]) throw new Error(`Port ${portId} already exists on node ${nodeId}`)
-  node.inports[portId] = port
-  stores[nodeId]?.update(oldNode => node)
 }
-*/
+
+
+export const addPort = (nodeId:string) => {
+
+  const node = get(nodeSpy(nodeId))
+  if (!node) throw new Error(`Node ${nodeId} not found`)
+
+  const portId = `in${Object.keys(node.inports).length}`
+  if (node.inports[portId]) throw new Error(`Port ${portId} already exists on node ${nodeId}`)
+
+  const inports = { ...node.inports, [portId]: node.newPort() }
+  updateNode(nodeId, { inports })
+}
+
 
 
 //

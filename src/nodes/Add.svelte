@@ -1,6 +1,8 @@
 <script lang="ts">
-  import Node from "$nodes/Node.svelte"
-  import Port from "$parts/Port.svelte"
+
+  import Node        from "$nodes/Node.svelte"
+  import Port        from "$parts/Port.svelte"
+  import InportGroup from "$parts/InportGroup.svelte"
 
   export let id: string;
 
@@ -11,18 +13,13 @@
 
 
 <Node id={id} title="Add" color="--indigo">
-  <div class="PortGroup" slot="inputs">
-    {#each Object.entries($node.inports) as [name, port]}
-      <Port nodeId={id} mode="in" {name} {...port} />
-    {/each}
-  </div>
+  <svelte:fragment slot="inputs">
+    <InportGroup nodeId={id} inports={$node.inports} />
+  </svelte:fragment>
 
-  <div slot="body">
-    <button on:click={$node.newPort}> + Add port </button>
-  </div>
+  <div slot="body" />
 
   <div class="PortGroup" slot="outputs">
     <Port nodeId={id} mode="out" name="out" {...$node.outport} />
   </div>
 </Node>
-

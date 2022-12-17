@@ -12,8 +12,14 @@ const EPSILON = 1e-4;
 export const log = (...args) =>
   console.log(...args) ?? args[0]
 
+export const red = (first, ...rest) =>
+  console.log(`%c${first}`, 'color:#fba', ...rest)
+
 export const blue = (first, ...rest) =>
-  console.log(`%c${first}`, 'color:#88f', ...rest)
+  console.log(`%c${first}`, 'color:#abf', ...rest)
+
+export const green = (first, ...rest) =>
+  console.log(`%c${first}`, 'color:#afb', ...rest)
 
 export const lerp = (a, b, t) =>
   a + (b - a) * t
@@ -39,7 +45,16 @@ export const invoke = (...args) => (λ) =>
 export const sleep = async (ms) =>
   await new Promise((λ) => setTimeout(λ, ms))
 
+export const now = () =>
+  new Date().getTime()
+
+export const after = (ms, λ) => {
+  setTimeout(() => {
+    console.log('after:', ms, λ)
+    λ()
+  }, ms)
+}
+
 export const defer = (it) =>
   new Promise(done => setTimeout(() => done(it), 0))
-
 

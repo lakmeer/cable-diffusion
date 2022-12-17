@@ -1,4 +1,4 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
   '@behave-graph/core': ^0.9.10
@@ -34,8 +34,8 @@ devDependencies:
   postcss-load-config: 4.0.1_postcss@8.4.19
   postcss-nested: 6.0.0_postcss@8.4.19
   svelte: 3.53.1
-  svelte-check: 2.10.0_37f3a11ea8706c7e87bb6c757e326387
-  svelte-preprocess: 4.10.7_4989835491db0950cc9f944a59f6160e
+  svelte-check: 2.10.0_g7z2chviobwh5b53nr2x4mtdq4
+  svelte-preprocess: 4.10.7_jgeygver3mevbte7srfft5qwby
   tslib: 2.4.1
   typescript: 4.9.3
   vite: 3.2.4
@@ -947,7 +947,7 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /svelte-check/2.10.0_37f3a11ea8706c7e87bb6c757e326387:
+  /svelte-check/2.10.0_g7z2chviobwh5b53nr2x4mtdq4:
     resolution: {integrity: sha512-5iLCoja/WsithyRkNtIeDQ0euJlgWj3Zzo2IA6iuHMuuX9D9OrRYZj2WlA5ACnAFQnN5L9mxWcwUW9VxDNEoGg==}
     hasBin: true
     peerDependencies:
@@ -960,7 +960,7 @@ packages:
       picocolors: 1.0.0
       sade: 1.8.1
       svelte: 3.53.1
-      svelte-preprocess: 4.10.7_4989835491db0950cc9f944a59f6160e
+      svelte-preprocess: 4.10.7_jgeygver3mevbte7srfft5qwby
       typescript: 4.9.3
     transitivePeerDependencies:
       - '@babel/core'
@@ -988,7 +988,7 @@ packages:
       svelte: 3.53.1
     dev: true
 
-  /svelte-preprocess/4.10.7_4989835491db0950cc9f944a59f6160e:
+  /svelte-preprocess/4.10.7_jgeygver3mevbte7srfft5qwby:
     resolution: {integrity: sha512-sNPBnqYD6FnmdBrUmBCaqS00RyCsCpj2BG58A1JBswNF7b0OKviwxqVrOL/CKyJrLSClrSeqQv5BXNg2RUbPOw==}
     engines: {node: '>= 9.11.2'}
     requiresBuild: true

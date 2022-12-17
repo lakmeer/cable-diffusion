@@ -5,6 +5,7 @@ export type Port = {
   x: number,
   y: number,
   value: any,
+  noSocket: boolean,
   filled: boolean,
   removable: boolean,
 }
@@ -18,14 +19,16 @@ export type Node = {
   x: number,
   y: number,
   type: string
-  busy: boolean
-  multi: boolean,
-  error: boolean,
   state: NodeState,
-  inports: { [tag:string]: Port },
+  multi: boolean,
   dynamic: boolean,
-  outport: Outport,
+  blocking: boolean,
+  debounce: number,
+  inports: { [tag:string]: Port },
+  outport: Port,
   compute: Computer,
+  initFn?: (node:Node) => Node,
+  newPort?: () => Port,
 }
 
 export type Edge = {
@@ -34,7 +37,11 @@ export type Edge = {
 }
 
 export type NodeState = {
-  out:           any,
+  value:   any,
+  busy:    boolean,
+  error:   boolean,
+  time:    number,
+  bounced: boolean,
   [key:string] : any,
 }
 
