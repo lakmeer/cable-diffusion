@@ -1,45 +1,67 @@
 <script lang="ts">
-  import type { Curve, Point, AnyDataflow } from "$types";
+  import type { Writable } from "svelte/store"
+  import type { Cable, Curve } from "$types"
 
-  import { cssVar } from '$utils';
+  import { getContext, onMount } from 'svelte'
+  import { tweened } from 'svelte/motion'
 
-  import dragging from '$lib/dragging';
+  import { nodeSpy } from "$store/the-graph"
+  import { xyToPoint } from "$utils"
 
-  import { addCable } from "$store/the-graph";
+  export let from:  { id: string, port: string }
+  export let to:    { id: string, port: string }
 
-
-  export let id:    string;
-  export let from:  string;
-  export let to:    string;
-  export let type:  AnyDataflow;
-  export let curve: Curve;
-
-  const thisCable = { id, type, from, to, curve };
-
-  if (curve.color.substring(0,1) == '--') curve.color = cssVar(curve.color);
+  export let index: number
+  export let type:  string
+  export let multi: boolean = false
 
 
-  // From this point on the original props will be ignored. I don't think that's
-  // a good idea, but I don't know how to do integrate this with a store otherwise.
+  let color:string = `--type-${type}`
 
-  const update = (prop) => (event) => {
-    thisCable.curve[prop] = event.detail;
+  let curve:Curve = {
+    termA: [ 0, 0 ],
+    termB: [ 0, 0 ],
+    ctrlA: [ 0, 0 ],
+    ctrlB: [ 0, 0 ],
   }
 
-  const handleStyle = (prop: string) => `
-    left: ${curve[prop][0]}px;
-    top:  ${curve[prop][1]}px;
-  `
+  let fromNode = nodeSpy(from.id)
+  let toNode   = nodeSpy(to.id)
 
-  addCable(thisCable);
+  $: curve.termA = xyToPoint($fromNode.outport)
+  $: curve.termB = xyToPoint($toNode.inports[to.port])
+  $: curve.ctrlA = xyToPoint($fromNode.outport, [ 100, 0 ])
+  $: curve.ctrlB = xyToPoint($toNode.inports[to.port], [ -100, 0 ])
+
+
+  // Brightness animation
+
+  let brightness = 0
+  $: if ($fromNode.state.busy) brightness = 1
+  $: if (brightness > 0) requestAnimationFrame(() => brightness *= 0.9)
+  $: if (brightness < 0.02) brightness = 0
+
+
+  // Update cables collection
+
+  let allCables:Writable<Cable[]> = getContext('curves')
+
+  $: allCables.update((cables:Cable[]) =>
+    cables.map((storedCable, ix) =>
+      ix === index
+        ? { curve, type, multi, brightness }
+        : storedCable))
+
+  onMount(() => $allCables[index] = { curve, type, multi, brightness })
 </script>
 
 
-<div id={id} class="Cable" style="color: {curve.color}">
-  <div class="terminal handle {type}" use:dragging on:drag={update('termA')} style={ handleStyle('termA') } />
-  <div class="terminal handle {type}" use:dragging on:drag={update('termB')} style={ handleStyle('termB') } />
-  <div class="control  handle {type}" use:dragging on:drag={update('ctrlA')} style={ handleStyle('ctrlA') } />
-  <div class="control  handle {type}" use:dragging on:drag={update('ctrlB')} style={ handleStyle('ctrlB') } />
+<div id={index.toString()} class="Cable" style="color: {color}">
+  {#each Object.entries(curve) as [ key, point ] (key)}
+    <div class="{key} handle {type}"
+       style="left: {point[0]}px; top: {point[1]}px" />
+      <!-- use:dragging on:drag={setXY(key)} -->
+  {/each}
 </div>
 
 
@@ -56,6 +78,8 @@
     transform: translate(-50%, -50%);
     transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
 
+    pointer-events: none;
+
     &:active {
       cursor: grabbing;
       border-width: 3px;
@@ -68,12 +92,14 @@
         0 16px 16px var(--shade-color);
     }
 
-    &.terminal {
+    &.termA, &.termB {
       background-color: currentColor;
+      display: none;
     }
 
-    &.control {
+    &.ctrlA, &.ctrlB {
       background-color: var(--night);
+      display: none;
     }
   }
 

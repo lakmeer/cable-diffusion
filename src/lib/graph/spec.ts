@@ -1,5 +1,5 @@
 
-import type { Node, Port, Computer, NodeState } from './types'
+import type { Node, Port, Computer, NodeState } from '$types'
 
 import { now } from '$utils'
 import * as Nodes from './nodes'
@@ -35,6 +35,7 @@ export class NodeSpec {
   node:   Node;
   deltas: Array<object>;
   custom: Array<object>;
+  initFn: (node: Node) => void;
 
   constructor (type: string, id: string) {
 

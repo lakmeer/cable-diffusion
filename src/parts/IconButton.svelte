@@ -7,7 +7,7 @@
 </script>
 
 
-<button class="IconButton" on:click>
+<button class="IconButton" on:click|preventDefault>
   {#if icon === 'run'}
     <Fa icon={ spin ? faRotateRight : faPlay} {spin} />
   {:else if icon === 'plus'}

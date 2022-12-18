@@ -37,9 +37,10 @@
     justify-content: space-between;
     align-items: center;
 
-      span {
-        display: block;
+    span {
+      display: block;
       flex: 1;
+      justify-self: center;
     }
   }
 

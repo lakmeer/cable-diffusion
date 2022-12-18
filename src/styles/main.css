@@ -106,7 +106,7 @@ button {
 }
 
 
-// Aniamtions n stuff
+// Animations n stuff
 
 .debug-traces {
   &, & * {
@@ -114,6 +114,12 @@ button {
   }
 }
 
+.big-text {
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.2;
+}
 
 @keyframes progress {
   from { background-position: 0 0; }

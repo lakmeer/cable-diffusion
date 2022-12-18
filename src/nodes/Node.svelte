@@ -1,17 +1,22 @@
 <script lang="ts">
-  import { runNode, nodeSpy, updateNode, addPort } from '$store/the-graph';
+  import type { Readable } from 'svelte/store'
+  import type { Node } from '$types'
 
-  import IconButton   from "$parts/IconButton.svelte";
-  import NodeTitleBar from "$parts/NodeTitleBar.svelte";
+  import IconButton   from "$parts/IconButton.svelte"
+  import NodeTitleBar from "$parts/NodeTitleBar.svelte"
+  import Port         from "$parts/Port.svelte"
+
+  import { runNode, nodeSpy, updateNode, addPort } from '$store/the-graph';
 
 
   // Props
 
-  export let id: string;
-  export let title: string = "Untitled Node";
-  export let color: string = "--blue"; // Should be a css var
+  export let id: string
+  export let title: string = "Untitled Node"
+  export let color: string = "--blue"  // Should be a css var
+  export let autocompute: boolean = false
 
-  let node = nodeSpy(id);
+  let node:Readable<Node> = nodeSpy(id)
   let run  = () => runNode(id)
   let add  = () => addPort(id)
 
@@ -22,10 +27,7 @@
 
   let dom:HTMLElement, grip:HTMLElement;
 
-  $: dragging(grip, { target: dom })
-
-  const dragged = ({ detail }) =>
-    updateNode(id, x => ({ ...x, x: detail[0], y: detail[1] }))
+  $: dragging(grip, { target: dom }, (pos) => updateNode(id, pos))
 
 
   // Style
@@ -35,12 +37,16 @@
     left: ${$node.x}px;
     --title-bg: var(${color});
   `
+
+  // Port events
+
+  const onPortUpdate = () => { if (autocompute) run() }
 </script>
 
 
 <div class="Node" bind:this={dom} style="{css}">
   <div class="NodeBody">
-    <NodeTitleBar {title} bind:grip on:drag={dragged}>
+    <NodeTitleBar {title} bind:grip>
       <svelte:fragment slot="left-actions">
         {#if $node.dynamic}
           <IconButton icon="plus" on:click={add} />
@@ -48,22 +54,29 @@
       </svelte:fragment>
 
       <svelte:fragment slot="right-actions">
-        <IconButton icon="run" spin={$node.state.busy} on:click={run}  />
+        {#if $node.outport}
+          <IconButton icon="run" spin={$node.state.busy} on:click={run}  />
+        {/if}
       </svelte:fragment>
     </NodeTitleBar>
 
     <div class="body">
       <div class="inputs">
-        <slot name="inputs" />
+        {#each Object.entries($node.inports) as [name, port] (name) }
+          <Port on:updated={onPortUpdate} nodeId={id} mode="in" name={name} {...port} />
+        {/each}
+        
       </div>
 
       <div class="inner">
         <slot name="body" />
       </div>
 
-      <div class="outputs">
-        <slot name="outputs" />
-      </div>
+      {#if $node.outport}
+        <div class="outputs">
+          <Port nodeId={id} mode="out" name="out" {...$node.outport} />
+        </div>
+      {/if}
     </div>
   </div>
 
@@ -77,6 +90,7 @@
 
   .Node {
     position: absolute;
+    user-select: none;
   }
 
   .NodeBody {
@@ -98,7 +112,7 @@
       &:empty { padding: 0; }
     }
 
-    .inputs > :global(div), .outputs > :global(div) {
+    .inputs, .outputs {
       display: flex;
       flex-direction: column;
       gap: var(--std-gap);

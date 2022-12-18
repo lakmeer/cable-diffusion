@@ -1,28 +1,12 @@
 
-import type { Node, Port } from './types';
+import type { Node, Port, NodeConstructor } from '$types';
 
 import { green, defer } from "$utils"
 
 
-
-//
-// Node Constructors
-//
-// Nodes will do computation with the `compute` method, which will take the current
-// state and the inport group, and should return Promise<Result<NodeState, Err>>
-// state. State can include whatever it likes for a particular node but must
-// have an 'out' property, which will be propagated to the outport.
-//
-
-type NodeConstructor = (node:Node) => Node
-
-
 // Result Monad
 
-type Result<T, E> = Ok<T> | Err
-
-type Ok<T> = { ok: true,  value: T,      unwrap: () => T }
-type Err   = { ok: false, error: string, unwrap: () => never }
+import type { Ok, Err } from '$types'
 
 const Ok  = (value: T):Ok<T>    => ({ ok: true,  value, unwrap: () => value })
 const Err = (error: string):Err => ({ ok: false, error, unwrap: () => { throw new Error(error) }})
@@ -41,6 +25,17 @@ export const Port = (type:string, value:any = null, others:any = {}):Port => ({
   removable: false,
   ...others
 })
+
+
+
+//
+// Node Constructors
+//
+// Nodes will do computation with the `compute` method, which will take the current
+// state and the inport group, and should return Promise<Result<NodeState, Err>>
+// state. State can include whatever it likes for a particular node but must
+// have an 'out' property, which will be propagated to the outport.
+//
 
 
 
@@ -80,7 +75,7 @@ export const Add:NodeConstructor = (spec:NodeSpec) =>
     .setBlocking(false)
     .debounce(100)
     .setDynamic((id) => Port('number', 0, { removable: true }))
-    .compute(async (state, ports) => {
+    .compute(async (_, ports) => {
       const args = Object.values(ports).map(p => p.value)
 
       if (args.some(v => typeof v !== 'number')) {

@@ -1,88 +1,72 @@
 <script lang="ts">
-  import type { Curve } from "$types";
+  import type { Writable } from 'svelte/store'
+  import type { Cable } from "$types"
 
-  import { onMount } from 'svelte';
-
-  import theGraph from "$store/the-graph";
+  import { onMount, setContext } from 'svelte'
+  import { writable } from 'svelte/store'
+  import { cssVar, rgbLerp } from '$utils'
 
 
   // State
 
-  let width:number = 0;
-  let height:number = 0;
+  let width:number  = 0
+  let height:number = 0
+  let canvas: HTMLCanvasElement
+  let ctx: CanvasRenderingContext2D
 
-  let canvas: HTMLCanvasElement;
-  let ctx: CanvasRenderingContext2D;
 
-  let cables = [];
+  // Shared Context is a list of Cables (curve with metadata)
 
-  theGraph.subscribe( ({ cables: _cables }) => {
-    cables = _cables;
-    if (ctx) redraw();
-  });
+  let cables:Writable<Cable[]> = writable([])
+  setContext('curves', cables)
 
 
   // Drawing Functions
 
-  const drawCurve = (curve:Curve) => {
-    console.log("drawCurve", curve);
+  const drawCable = ({ type, multi, brightness, curve }:Cable) => {
+    const { termA, termB, ctrlA, ctrlB } = curve
 
-    const { color, termA, termB, ctrlA, ctrlB } = curve;
+    ctx.strokeStyle = rgbLerp(cssVar(`type-${type}`), '#ffffff', brightness)
 
-    // NOTE: Haven't seen this bug in a while
-    if (!termA || !termB) console.log(termA, termB);
-
-    ctx.strokeStyle = color;
 
     // Control helpers
-    ctx.lineWidth = 1;
-    ctx.setLineDash([ 10, 10 ]);
-    ctx.beginPath();
-    ctx.moveTo(...termA);
-    ctx.lineTo(...ctrlA);
-    ctx.moveTo(...termB);
-    ctx.lineTo(...ctrlB);
-    ctx.stroke();
+    /*
+      ctx.lineWidth = 1
+      ctx.setLineDash([ 10, 10 ])
+      ctx.beginPath()
+      ctx.moveTo(...termA)
+      ctx.lineTo(...ctrlA)
+      ctx.moveTo(...termB)
+      ctx.lineTo(...ctrlB)
+      ctx.stroke()
+    */
 
     // Main cable
-    ctx.lineWidth = 4;
-    ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.moveTo(...termA);
-    ctx.bezierCurveTo(...ctrlA, ...ctrlB, ...termB);
-    ctx.stroke();
+    ctx.lineWidth = multi ? 8 : 4 + 2 * brightness
+    ctx.setLineDash([])
+    ctx.beginPath()
+    ctx.moveTo(...termA)
+    ctx.bezierCurveTo(...ctrlA, ...ctrlB, ...termB)
+    ctx.stroke()
   };
 
-  const redraw = () => {
-    ctx.clearRect(0, 0, width, height);
-    cables.forEach(cable => drawCurve(cable.curve));
+  const drawAll = (cables: Cable[]) => {
+    ctx?.clearRect(0, 0, width, height)
+    cables.forEach(drawCable)
   }
-
-
-
-  // TODO
-  //
-  // - Might need to replace svelte/store with custom mechanism
-  // - setContext?
-  // - Create unique subscription methods for each type, or take
-  //    a unique id to give a custom subscriber
-  //    - Update UI when subscription fires
-  //    - Push data back into store when UI changes
-
-
 
 
   // Init
 
-  onMount(() => ctx = canvas.getContext('2d'));
+  onMount(() => ctx = canvas.getContext('2d'))
+
+  drawAll($cables)
 
   $: if (canvas) {
     canvas.width  = width;
     canvas.height = height;
-    redraw();
+    drawAll($cables)
   }
-
-  theGraph.subscribe(() =>  {if (ctx) { redraw }})
 </script>
 
 
@@ -112,6 +96,7 @@
     height: 100%;
     z-index: 0;
     background: var(--night);
+    pointer-events: none;
   }
 
 </style>

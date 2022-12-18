@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { Node } from "$lib/graph/types"
+  import type { Node, Edge } from "$types"
 
-  import { loadSpec, allNodes, runGraph } from '$store/the-graph';
+  import { loadSpec, allNodes, allEdges, runGraph } from '$store/the-graph';
   import { NodeSpec } from '$lib/graph/spec'
 
 
@@ -27,6 +27,10 @@
   // UI
 
   let nodes:Node[] = $allNodes;
+  let edges:Edge[] = $allEdges;
+
+  import Cables     from '$parts/Cables.svelte'
+  import Cable      from '$parts/Cable.svelte'
 
   import ConstNode  from '$nodes/Const.svelte';
   import AddNode    from '$nodes/Add.svelte';
@@ -36,15 +40,14 @@
   import RangeNode  from "$nodes/Range.svelte";
 </script>
 
+
 <main>
   <div class="backdrop">
-    <!--
     <Cables>
-      {#each cables as cable, ix}
-        <Cable_ id={ix.toString()} {...cable} />
+      {#each edges as edge, ix}
+        <Cable index={ix} type={edge.type} {...edge} />
       {/each}
     </Cables>
-    --> 
   </div>
 
   {#each nodes as node (node.id)}

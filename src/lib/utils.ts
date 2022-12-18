@@ -1,4 +1,4 @@
-import { createEventDispatcher } from 'svelte';
+// @ts-nocheck
 
 const { min, max, abs, sin, cos, random, pow, exp, sqrt, PI } = Math;
 
@@ -48,7 +48,7 @@ export const sleep = async (ms) =>
 export const now = () =>
   new Date().getTime()
 
-export const after = (ms, λ) => {
+export const after = async (ms, λ) => {
   setTimeout(() => {
     console.log('after:', ms, λ)
     λ()
@@ -57,4 +57,24 @@ export const after = (ms, λ) => {
 
 export const defer = (it) =>
   new Promise(done => setTimeout(() => done(it), 0))
+
+export const xyToPoint = ({ x, y }, offset?:Point):Point =>
+  offset ? [ x + offset[0], y + offset[1] ] : [ x, y ]
+
+export const rgbLerp = (hexA, hexB, t) => {
+
+  const hexAR = parseInt(hexA.slice(1, 3), 16)
+  const hexAG = parseInt(hexA.slice(3, 5), 16)
+  const hexAB = parseInt(hexA.slice(5, 7), 16)
+  const hexBR = parseInt(hexB.slice(1, 3), 16)
+  const hexBG = parseInt(hexB.slice(3, 5), 16)
+  const hexBB = parseInt(hexB.slice(5, 7), 16)
+
+  const lerpR = Math.round(lerp(hexAR, hexBR, t))
+  const lerpG = Math.round(lerp(hexAG, hexBG, t))
+  const lerpB = Math.round(lerp(hexAB, hexBB, t))
+
+  return `#${lerpR.toString(16).padStart(2, '0')}${lerpG.toString(16).padStart(2, '0')}${lerpB.toString(16).padStart(2, '0')}`
+
+}
 

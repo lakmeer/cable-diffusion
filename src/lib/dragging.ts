@@ -2,18 +2,20 @@
 import { getCssValue } from '$utils';
 
 
-type DragState = {
+export type DragState = {
   x: number,
   y: number,
   dragging: boolean,
 }
+
+export type DragCallback = (DragState) => void
 
 
 //
 // Dragging Hook
 //
 
-export default (node:HTMLElement, params?) => {
+export default (node:HTMLElement, params?, callback?: DragCallback) => {
 
   // Node is blank, try again when the DOM is ready
   if (!node) return;
@@ -32,7 +34,7 @@ export default (node:HTMLElement, params?) => {
 
   // Emit custom events
   const emit = (type, x, y) =>
-    node.dispatchEvent( new CustomEvent(type, { detail: [ x, y ] }));
+    node.dispatchEvent( new CustomEvent(type, { detail: [ x, y ] }))
 
   // Functions
   const start = () => {
@@ -41,17 +43,18 @@ export default (node:HTMLElement, params?) => {
 
   const stop = (event) => {
     state.dragging = false;
-    emit('dragend', state.x, state.y);
+    emit('dragend', state.x, state.y)
   }
 
   const move = (event) => {
     if (state.dragging) {
-      const { movementX, movementY } = event;
+      const { movementX, movementY } = event
       state.x += movementX;
-      state.y += movementY;
-      target.style.left = `${state.x}px`;
-      target.style.top  = `${state.y}px`;
-      emit('drag', state.x, state.y);
+      state.y += movementY
+      target.style.left = `${state.x}px`
+      target.style.top  = `${state.y}px`
+      emit('drag', state.x, state.y)
+      if (callback) callback(state)
     }
   }
 

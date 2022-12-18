@@ -1,11 +1,11 @@
 
-import type { Readable, WritableStore } from 'svelte/store'
-import type { Graph, Node, Edge } from "$lib/graph/types"
+import type { Readable, Writable } from 'svelte/store'
+import type { Graph, Node, Edge, Port } from "$lib/graph/types"
 
 import { get, writable, derived } from 'svelte/store'
-import { now, red, blue, after, defer } from "$utils"
+import { log, now, red, blue, defer } from "$utils"
 
-const ENABLE_LOGGING = true
+const ENABLE_LOGGING = false
 
 
 
@@ -13,7 +13,7 @@ const ENABLE_LOGGING = true
 // Master State
 //
 
-let theGraph:WritableStore<Graph> = writable({ nodes: [], edges: [] })
+let theGraph:Writable<Graph> = writable({ nodes: [], edges: [] })
 
 
 
@@ -32,6 +32,12 @@ export const nodeSpy = (nodeId):Readable<Node> =>
 export const allEdges:Readable<Edge[]> =
   derived(theGraph, $graph => $graph.edges)
 
+export const edgesFrom = (nodeId):Readable<Edge[]> =>
+  derived(theGraph, $graph => $graph.edges.filter(e => e.from.id === nodeId))
+
+export const portSpy = (nodeId, portId):Readable<Port> => {
+  return derived(theGraph, $graph => $graph.nodes.find(n => n.id === nodeId).inports[portId])
+}
 
 
 //
@@ -49,9 +55,12 @@ const mutateNodes = (fn:NodeMutator) =>
 export const addNode = (node:Node) =>
   mutateNodes(nodes => nodes.concat(node))
 
-export const updateNode = (nodeId:string, updates: any) =>
+export const updateNode = (nodeId:string, updates: any) => {
+  if (typeof updates === 'function') { throw new Error("updateNode doesn't take a function") }
+
   mutateNodes(nodes => nodes.map(storedNode =>
     (storedNode.id !== nodeId) ? storedNode : { ...storedNode, ...updates }))
+}
 
 export const updateNodePort = (nodeId:string, portName:string, updates:any) => {
   mutateNodes(nodes => nodes.map(storedNode => {
@@ -198,18 +207,6 @@ const runSingleNode = async (nodeId:string, force = false) => {
 }
 
 
-export const runGraph = async () => {
-  if (ENABLE_LOGGING) {
-    console.clear()
-    red("New graph run...")
-  }
-
-  await Promise.all(get(allNodes)
-    .filter(n => !get(allEdges).some(e => e.to.id === n.id))
-    .map(n => runSingleNode(n.id, true)))
-}
-
-
 export const addPort = (nodeId:string) => {
 
   const node = get(nodeSpy(nodeId))
@@ -220,6 +217,18 @@ export const addPort = (nodeId:string) => {
 
   const inports = { ...node.inports, [portId]: node.newPort() }
   updateNode(nodeId, { inports })
+}
+
+
+export const runGraph = async () => {
+  if (ENABLE_LOGGING) {
+    console.clear()
+    red("New graph run...")
+  }
+
+  await Promise.all(get(allNodes)
+    .filter(n => !get(allEdges).some(e => e.to.id === n.id))
+    .map(n => runSingleNode(n.id, true)))
 }
 
 
@@ -242,6 +251,9 @@ export const loadSpec = (spec) => {
 
     fromNode.outport.filled = true
     toNode.inports[edge.to.port].filled = true
+
+    edge.type  = fromNode.outport.type
+    edge.multi = fromNode.multi
 
     graph.edges.push(edge)
   })

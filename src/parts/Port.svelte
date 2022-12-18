@@ -1,21 +1,18 @@
 <script lang="ts">
   import type { AnyDataflow } from "$types";
 
-  import { updateNodePort } from "$store/the-graph";
+  import { createEventDispatcher } from "svelte"
+  import { nodeSpy, updateNodePort } from "$store/the-graph";
 
   // Standard Port props
   export let type:AnyDataflow;
   export let label:string;
   export let filled:boolean = false;
   export let removable: boolean = false;
-  export let x: number = 0;
-  export let y: number = 0;
-
-  // Will get value set by parent node, but report updates directly
-  // to the graph. Parent node doesn't have to worry about bindings
-  export let value;
 
   // UI-specific props
+  export let x: number = 0
+  export let y: number = 0
   export let nodeId: string;
   export let name: string;
   export let mode: 'in' | 'out' = 'out';
@@ -23,24 +20,46 @@
   export let noSocket:boolean = false;
   export let multiline:boolean = false;
 
-  // UI
-  let dom: HTMLElement;
+  // Will get value set by parent node, but report updates directly
+  // to the graph. Parent node doesn't have to worry about bindings
+  export let value;
 
-  $: if (dom) {
-    x = dom.getBoundingClientRect().x;
-    y = dom.getBoundingClientRect().y;
-  }
 
-  $: updateNodePort(nodeId, name, { value });
+  // Events
 
-  import { createEventDispatcher } from "svelte"
+  // Report user manually changing values
   const emit = createEventDispatcher()
   const onChange = (event) => emit('updated', event.target.value)
+
+
+  // Positioning
+
+  let node = nodeSpy(nodeId)
+
+  let width: number = 0
+  let height: number = 0
+  let bcr = { x: 0, y: 0 }
+
+  // Initial values
+  let dom: HTMLElement
+
+  node.subscribe(() => { if (dom) bcr = dom.getBoundingClientRect() })
+  
+
+  // Parent node was moved
+
+  // Keep graph updated
+  $: x = bcr.x + (mode === 'out' ? width : 0)
+  $: y = bcr.y + (height/2)
+  $: updateNodePort(nodeId, name, { value, x, y })
+
 </script>
 
 
 <div name={name}
   bind:this={dom}
+  bind:clientWidth={width} 
+  bind:clientHeight={height} 
   class="Port {mode}"
   class:filled
   class:no-socket={noSocket}

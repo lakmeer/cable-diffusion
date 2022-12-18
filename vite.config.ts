@@ -4,10 +4,18 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [
+    svelte({
+      experimental: {
+        inspector: {
+          toggleKeyCombo: 'control-shift',
+        }
+      }
+    })
+  ],
   resolve: {
     alias: {
-      $lib:  path.resolve(__dirname, './src/lib'),
+      $lib:   path.resolve(__dirname, './src/lib'),
       $nodes: path.resolve(__dirname, './src/nodes'),
       $parts: path.resolve(__dirname, './src/parts'),
       $store: path.resolve(__dirname, './src/stores'),
