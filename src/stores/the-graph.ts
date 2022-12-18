@@ -1,11 +1,11 @@
 
 import type { Readable, Writable } from 'svelte/store'
-import type { Graph, Node, Edge, Port } from "$lib/graph/types"
+import type { Graph, Node, Edge, Port } from "$types"
 
 import { get, writable, derived } from 'svelte/store'
-import { log, now, red, blue, defer } from "$utils"
+import { now, red, blue, defer, sleep } from "$utils"
 
-const ENABLE_LOGGING = false
+const ENABLE_LOGGING = true
 
 
 
@@ -135,15 +135,31 @@ const runSingleNode = async (nodeId:string, force = false) => {
     return console.warn("Couldn't find node with id", nodeId)
   }
 
-  if (node.busy && node.blocking) {
+  if (node.state.busy && node.blocking) {
     return warnNode(node, "is busy");
   }
 
-  logNode(node, (time - node.state.time), node.debounce)
+  logNode(node, 'Running...' + (force ? '(forced)' : ''))
 
   updateNodeState(nodeId, { busy: true, bounced: false })
 
-  logNode(node, 'Running...' + (force ? '(forced)' : ''))
+
+  // Debouncing
+
+  const timeSinceLastRun = time - node.state.time
+
+  if (timeSinceLastRun < node.debounce) {
+    if (!node.state.bounced) {
+      updateNodeState(nodeId, { bounced: true, time })
+      setTimeout(() => {
+        runSingleNode(nodeId)
+      }, node.debounce - timeSinceLastRun)
+      return warnNode(node, "debounced, waiting", node.debounce - timeSinceLastRun, "ms")
+    }
+  }
+
+
+  // Actual computation
 
   const result = await node.compute(node.state, node.inports)
 
@@ -173,17 +189,6 @@ const runSingleNode = async (nodeId:string, force = false) => {
   }
 
   updateNodeState(nodeId, { ...newState, busy: false, error: false, time })
-
-  if (time - node.state.time <= node.debounce) {
-    if (!node.state.bounced) {
-      updateNodeState({ bounced: true, time })
-      setTimeout(() => {
-        logNode(node, "debounce callback")
-        runSingleNode(nodeId)
-      }, time - node.debounce)
-      return warnNode(node, "debounced")
-    }
-  }
 
 
   // Find connected edges and update inport value with new value

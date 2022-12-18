@@ -216,7 +216,7 @@ export class NodeSpec {
     this.custom.forEach(delta => merge(node, delta))
 
     // Final setup
-    node.state.time = now()
+    node.state.time = now() - this.node.debounce  // Or it will bounce immediately
     if (this.initFn) this.initFn(node)
 
     // Sanity Checks
