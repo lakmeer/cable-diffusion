@@ -3,6 +3,7 @@ import type { Node, Port, Computer, NodeConstructor } from '$types';
 import type { NodeSpec } from '$lib/graph/spec';
 
 import { PortSpec, MathBinary } from '$lib/graph/templates';
+import { reducePorts } from '$lib/graph/computers';
 import { green, defer } from "$utils"
 
 import { Ok, Err } from "$lib/result"
@@ -15,12 +16,6 @@ import { Ok, Err } from "$lib/result"
 // state and the inport group, and should return Promise<Result<NodeState, Err>>
 // state. State can include whatever it likes for a particular node but must
 // have an 'out' property, which will be propagated to the outport.
-//
-
-
-
-//
-// Basic Math Nodes
 //
 
 
@@ -40,11 +35,39 @@ export const Const = (spec:NodeSpec) =>
     .init(({ inports, state }) => inports.set.value = state.value)
 
 
-export const Add = MathBinary((...args:Array<number>) =>
-  args.reduce((a, b) => a + b, 0))
+export const Add = (spec:NodeSpec) =>
+  MathBinary(spec)
+    .setDynamic(() => PortSpec('number', 0, { removable: true }))
+    .compute(reducePorts((...args) => args.reduce((a, b) => a + b, 0)))
 
-export const Subtract = MathBinary((...args:Array<number>) =>
-  args.reduce((a, b) => a - b, 0))
+
+export const Subtract = (spec:NodeSpec) => 
+  MathBinary(spec)
+    .setDynamic(() => PortSpec('number', 0, { removable: true }))
+    .compute(reducePorts((x, ...ys) => ys.reduce((a, b) => a - b, x)))
+
+
+export const Multiply = (spec:NodeSpec) =>
+  MathBinary(spec)
+    .setDynamic(() => PortSpec('number', 1, { removable: true }))
+    .compute(reducePorts((...args) => args.reduce((a, b) => a * b, 1)))
+
+
+export const Divide = (spec:NodeSpec) => 
+  MathBinary(spec)
+    .compute(async (_, ports) => {
+      const args = Object.values(ports).map(p => p.value)
+
+      if (args.some(v => typeof v !== 'number')) {
+        return defer(Err('Divide::Error - invalid input'))
+      }
+
+      if (args[1] === 0) {
+        return defer(Err('Divide::Error - divide by zero'))
+      }
+
+      return defer(Ok({ args, value: args[0] / args[1] }))
+    })
 
 
 

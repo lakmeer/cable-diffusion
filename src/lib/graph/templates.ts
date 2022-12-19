@@ -1,5 +1,5 @@
 
-import type { Port } from '$types';
+import type { Port, Computer } from '$types';
 import type { NodeSpec } from './spec'
 
 import { Ok, Err } from "$lib/result"
@@ -27,25 +27,16 @@ export const PortSpec = (type:string, value:any = null, others:any = {}):Port =>
 // Pre-made Templates for common node types
 //
 
-export const MathBinary = (op) =>
-  (spec:NodeSpec) =>
-    spec
-      .initialState({ out: 0, args: [] })
-      .port('in0', PortSpec('number', 0))
-      .port('in1', PortSpec('number', 0))
-      .port('out', PortSpec('number', 0, { label: 'Value' }))
-      .setBlocking(false)
-      .debounce(100)
-      .setDynamic(() => PortSpec('number', 0, { removable: true }))
-      .compute(async (_, ports) => {
-        const args = Object.values(ports).map(p => p.value)
+export const TwoInOneOut = (type: string) => (spec:NodeSpec) => {
+  const startValue = type === 'number' ? 0 : ''
+  return spec
+    .initialState({ out: startValue, args: [] })
+    .port('in0', PortSpec(type, startValue))
+    .port('in1', PortSpec(type, startValue))
+    .port('out', PortSpec(type, startValue, { label: 'Value' }))
+}
 
-        if (args.some(v => typeof v !== 'number')) {
-          return defer(Err('Add::Error - invalid input'))
-        }
 
-        return defer(Ok({
-          args,
-          value: op(...args)
-        }))
-      })
+export const MathBinary = TwoInOneOut('number')
+
+

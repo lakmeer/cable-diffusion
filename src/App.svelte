@@ -30,7 +30,6 @@
   //
   // - Investigate state machine model for nodes
   // - Implement actor-style inbox and then use that for busy/debounce
-  // - Generic node types like MathBinary to save on spec boilerplate
   // - More complex test graph
   // - Dynamic attaching cables
   // - Bring in some diffusion node types
