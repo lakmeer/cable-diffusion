@@ -1,4 +1,5 @@
 
+import type { NodeSpec } from '../lib/graph/spec'
 import { Result, Ok, Err } from './result';
 
 
@@ -61,9 +62,7 @@ export type Graph = {
 export type Computer = (state:NodeState, inports:PortGroup) =>
   Promise<Result<NodeState>>
 
-export type NodeConstructor = (node:Node) => Node
-
-
-
+export type NodeConstructor = (node:Node) =>
+  Node | NodeSpec
 
 

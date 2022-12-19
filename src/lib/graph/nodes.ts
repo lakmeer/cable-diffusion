@@ -1,31 +1,11 @@
 
-import type { Node, Port, NodeConstructor } from '$types';
+import type { Node, Port, Computer, NodeConstructor } from '$types';
+import type { NodeSpec } from '$lib/graph/spec';
 
+import { PortSpec, MathBinary } from '$lib/graph/templates';
 import { green, defer } from "$utils"
 
-
-// Result Monad
-
-import type { Ok, Err } from '$types'
-
-const Ok  = (value: T):Ok<T>    => ({ ok: true,  value, unwrap: () => value })
-const Err = (error: string):Err => ({ ok: false, error, unwrap: () => { throw new Error(error) }})
-
-
-// Port Helper (not a builder)
-
-export const Port = (type:string, value:any = null, others:any = {}):Port => ({
-  x: 0,
-  y: 0,
-  type,
-  value,
-  label: null,
-  filled: false,
-  noSocket: false,
-  removable: false,
-  ...others
-})
-
+import { Ok, Err } from "$lib/result"
 
 
 //
@@ -51,42 +31,20 @@ export const Port = (type:string, value:any = null, others:any = {}):Port => ({
 // - value: any
 // - out:   any
 
-export const Const:NodeConstructor = (spec:NodeSpec) =>
+export const Const = (spec:NodeSpec) =>
   spec
     .state('value', 0)
-    .port('set', Port('number', 0, { label: 'Value', noSocket: true }))
-    .port('out', Port('number', 0, { label: 'Value' }))
-    .compute(async (state, ports) => defer(Ok({ value: ports.set.value })))
+    .port('set', PortSpec('number', 0, { label: 'Value', noSocket: true }))
+    .port('out', PortSpec('number', 0, { label: 'Value' }))
+    .compute(async (_, ports) => defer(Ok({ value: ports.set.value })))
     .init(({ inports, state }) => inports.set.value = state.value)
 
 
-// Add
-//
-// Adds numbers together. Extensible.
-// - out:  number
-// - args: number[] - capture of current port values
+export const Add = MathBinary((...args:Array<number>) =>
+  args.reduce((a, b) => a + b, 0))
 
-export const Add:NodeConstructor = (spec:NodeSpec) =>
-  spec
-    .initialState({ out: 0, args: [] })
-    .port('in0', Port('number', 0))
-    .port('in1', Port('number', 0))
-    .port('out', Port('number', 0, { label: 'Value' }))
-    .setBlocking(false)
-    .debounce(100)
-    .setDynamic((id) => Port('number', 0, { removable: true }))
-    .compute(async (_, ports) => {
-      const args = Object.values(ports).map(p => p.value)
-
-      if (args.some(v => typeof v !== 'number')) {
-        return defer(Err('Add::Error - invalid input'))
-      }
-
-      return defer(Ok({
-        args,
-        value: args.reduce((a, b) => a + b, 0)
-      }))
-    })
+export const Subtract = MathBinary((...args:Array<number>) =>
+  args.reduce((a, b) => a - b, 0))
 
 
 
@@ -104,7 +62,7 @@ export const Add:NodeConstructor = (spec:NodeSpec) =>
 
 export const Output:NodeConstructor = (spec:NodeSpec) =>
   spec
-    .port('text', Port('string', "", { label: 'Text' }))
+    .port('text', PortSpec('string', "", { label: 'Text' }))
     .compute(async (state, ports) => {
       const text = ports.text.value;
       green(`Output::result - ${text}`)
@@ -117,10 +75,10 @@ export const Output:NodeConstructor = (spec:NodeSpec) =>
 export const Spread:NodeConstructor = (spec:NodeSpec) =>
   spec
     .setMultiple(true)
-    .port('mid',   Port('number', 0, { label: "Midpoint" }))
-    .port('step',  Port('number', 0, { label: "Step" }))
-    .port('times', Port('number', 0, { label: "Times" }))
-    .port('out',   Port('number', 0, { label: "Value", multi: true }))
+    .port('mid',   PortSpec('number', 0, { label: "Midpoint" }))
+    .port('step',  PortSpec('number', 0, { label: "Step" }))
+    .port('times', PortSpec('number', 0, { label: "Times" }))
+    .port('out',   PortSpec('number', 0, { label: "Value", multi: true }))
     .compute(async (state, ports) => {
       const mid   = ports.mid.value
       const step  = ports.step.value
@@ -135,10 +93,10 @@ export const Spread:NodeConstructor = (spec:NodeSpec) =>
 export const Range:NodeConstructor = (spec:NodeSpec) =>
   spec
     .setMultiple(true)
-    .port('min',  Port('number', 0, { label: "Min" }))
-    .port('max',  Port('number', 0, { label: "Max" }))
-    .port('step', Port('number', 0, { label: "Step" }))
-    .port('out',  Port('number', 0, { label: "Value", multi: true }))
+    .port('min',  PortSpec('number', 0, { label: "Min" }))
+    .port('max',  PortSpec('number', 0, { label: "Max" }))
+    .port('step', PortSpec('number', 0, { label: "Step" }))
+    .port('out',  PortSpec('number', 0, { label: "Value", multi: true }))
     .compute(async (state, ports) => {
       const min  = ports.min.value
       const max  = ports.max.value
@@ -161,9 +119,9 @@ export const Range:NodeConstructor = (spec:NodeSpec) =>
 
 export const Prompt:NodeConstructor = (spec:NodeSpec) =>
   spec
-    .port('pos', Port('string', "", { label: "Positive" }))
-    .port('neg', Port('string', "", { label: "Negative" }))
-    .port('out', Port('prompt', "", { label: "Value" }))
+    .port('pos', PortSpec('string', "", { label: "Positive" }))
+    .port('neg', PortSpec('string', "", { label: "Negative" }))
+    .port('out', PortSpec('prompt', "", { label: "Value" }))
     .compute(async (state, ports) => {
       return Ok(ports.pos.value + " ### " + ports.neg.value)
     })

@@ -5,7 +5,7 @@ import type { Graph, Node, Edge, Port } from "$types"
 import { get, writable, derived } from 'svelte/store'
 import { now, red, blue, defer, sleep } from "$utils"
 
-const ENABLE_LOGGING = true
+const ENABLE_LOGGING = false
 
 
 

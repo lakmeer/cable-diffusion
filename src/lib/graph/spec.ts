@@ -80,8 +80,8 @@ export class NodeSpec {
   // Set the internal state as a whole object.
   // Overwrites any existing state.
 
-  initialState (state: NodeState) {
-    this.deltas.push({ state })
+  initialState (delta: any) {
+    this.deltas.push({ state: { delta } })
     return this
   }
 
@@ -201,14 +201,10 @@ export class NodeSpec {
     this.deltas = []
 
     // Dispatch to node definitions to provide builtin deltas
-    switch (node.type) {
-      case 'Const':  Nodes.Const(this);   break;
-      case 'Add':    Nodes.Add(this);     break;
-      case 'Output': Nodes.Output(this);  break;
-      case 'Spread': Nodes.Spread(this);  break;
-      case 'Range':  Nodes.Range(this);   break;
-      case 'Prompt': Nodes.Prompt(this);  break;
-      default: console.warn(`Unsupported node type: ${node.type}`)
+    if (Nodes[node.type]) {
+      Nodes[node.type](this)
+    } else {
+      throw new Error(`Unsupported node type: ${node.type}`)
     }
 
     // Apply custom deltas

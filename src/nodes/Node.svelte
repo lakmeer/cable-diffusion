@@ -20,6 +20,7 @@
   let run  = () => runNode(id)
   let add  = () => addPort(id)
 
+  console.log("Node", id, "created")
 
   // Drag setup
 

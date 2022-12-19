@@ -55,7 +55,7 @@ export const after = async (ms, λ) => {
   }, ms)
 }
 
-export const defer = (it) =>
+export const defer = (it:T):Promise<T> =>
   new Promise(done => setTimeout(() => done(it), 0))
 
 export const xyToPoint = ({ x, y }, offset?:Point):Point =>

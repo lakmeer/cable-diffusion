@@ -4,6 +4,8 @@
   import { loadSpec, allNodes, allEdges, runGraph } from '$store/the-graph';
   import { NodeSpec } from '$lib/graph/spec'
 
+  import ErrorBox from '$parts/ErrorBox.svelte'
+
 
   // Setup
 
@@ -11,7 +13,7 @@
     nodes: [
       new NodeSpec('Const',    "a").at(50,  50).state('value', 3),
       new NodeSpec('Const',    "b").at(50, 280).state('value', 7),
-      new NodeSpec('Add',      "c").at(450, 150),
+      new NodeSpec('Subtract', "c").at(450, 150),
       new NodeSpec('Output', "msg").at(850, 150),
     ],
     edges: [
@@ -24,47 +26,42 @@
   runGraph();
 
 
-  // UI
+  // Todo:
+  //
+  // - Investigate state machine model for nodes
+  // - Implement actor-style inbox and then use that for busy/debounce
+  // - Generic node types like MathBinary to save on spec boilerplate
+  // - More complex test graph
+  // - Dynamic attaching cables
+  // - Bring in some diffusion node types
 
-  let nodes:Node[] = $allNodes;
-  let edges:Edge[] = $allEdges;
+
+
+  // UI
 
   import Cables     from '$parts/Cables.svelte'
   import Cable      from '$parts/Cable.svelte'
 
-  import ConstNode  from '$nodes/Const.svelte';
-  import AddNode    from '$nodes/Add.svelte';
-  import OutputNode from '$nodes/Output.svelte';
-  import PromptNode from "$nodes/Prompt.svelte";
-  import SpreadNode from "$nodes/Spread.svelte";
-  import RangeNode  from "$nodes/Range.svelte";
+  import * as NodeComponents from '$nodes'
 </script>
 
 
 <main>
   <div class="backdrop">
     <Cables>
-      {#each edges as edge, ix}
+      {#each $allEdges as edge, ix}
         <Cable index={ix} type={edge.type} {...edge} />
       {/each}
     </Cables>
   </div>
 
-  {#each nodes as node (node.id)}
-    {#if      node.type == 'Const'}
-      <ConstNode  id={node.id} />
-    {:else if node.type == 'Add'}
-      <AddNode    id={node.id} />
-    {:else if node.type == 'Output'}
-      <OutputNode id={node.id} />
-    {:else if node.type == 'Prompt'}
-      <PromptNode id={node.id} />
-    {:else if node.type == 'Spread'}
-      <SpreadNode id={node.id} />
-    {:else if node.type == 'Range'}
-      <RangeNode  id={node.id} />
+  {#each $allNodes as node (node.id)}
+    {#if node.type in NodeComponents}
+      <svelte:component this={NodeComponents[node.type]} id={node.id} />
     {:else}
-      <div>Unknown node type: {node.type}</div>
+      <ErrorBox x={node.x} y={node.y}>
+        <strong>Unsupported node</strong>: {node.type}
+      </ErrorBox>
     {/if}
   {/each}
 </main>
