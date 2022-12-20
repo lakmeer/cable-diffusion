@@ -3,8 +3,6 @@
 // Types used by Svelte components
 //
 
-export type AnyDataflow = string
-
 export type Point = {
   x: number,
   y: number

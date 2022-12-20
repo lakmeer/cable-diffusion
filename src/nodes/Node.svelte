@@ -37,10 +37,6 @@
     left: ${$node.x}px;
     --title-bg: var(${color});
   `
-
-  // Port events
-
-  const onPortUpdate = () => { if (autocompute) run() }
 </script>
 
 
@@ -63,7 +59,7 @@
     <div class="body">
       <div class="inputs">
         {#each Object.entries($node.inports) as [name, port] (name) }
-          <Port on:updated={onPortUpdate} nodeId={id} mode="in" name={name} {...port} />
+          <Port nodeId={id} mode="in" name={name} />
         {/each}
         
       </div>
@@ -74,7 +70,7 @@
 
       {#if $node.outport}
         <div class="outputs">
-          <Port nodeId={id} mode="out" name="out" {...$node.outport} />
+          <Port nodeId={id} mode="out" name="out" />
         </div>
       {/if}
     </div>

@@ -69,6 +69,7 @@ body {
 // Custom Button
 
 button {
+  display: inline-block;
   font-size: 1rem;
   border: 1px solid var(--highlight-color);
   background-color: transparent;
@@ -103,7 +104,27 @@ button {
     border-color: var(--night);
     background-size: 200% 200%;
     background-position: 100% 100%;
-  }  
+  }
+
+
+  // Variants
+
+  &.small {
+    font-size: 0.8rem;
+    line-height: 1.2rem;
+  }
+
+  &.subtle {
+    opacity: 0.7;
+    background-image: none;
+    box-shadow: none;
+    border-color: transparent;
+    transition: border-color 0.1s ease-in-out;
+
+    &:hover {
+      border-color: var(--highlight-color);
+    }
+  }
 }
 
 

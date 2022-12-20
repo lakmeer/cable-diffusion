@@ -1,6 +1,7 @@
 
-import type { Node, Port, Computer, NodeState } from '$types'
+import type { Value, Node, Port, Computer, NodeState, NodeDelta } from '$types'
 
+import { newValue } from "$lib/graph/value"
 import { Ok } from '$lib/result'
 
 import { now } from '$utils'
@@ -34,13 +35,13 @@ const merge = (node:Node, delta:object) => {
 
 export class NodeSpec {
 
-  node:   Node;
-  deltas: Array<object>;
-  custom: Array<object>;
-  initFn: (node: Node) => void;
+  node:     Node;
+  deltas:   Array<object>;
+  custom:   Array<object>;
+  initFn:   (node: Node) => void;
+  updateFn: (node: Node) => void;
 
   constructor (type: string, id: string) {
-
     this.node = {
       id:       id,
       x:        0,
@@ -48,7 +49,7 @@ export class NodeSpec {
       type:     type,
       inports:  {},
       outport:  null,
-      compute:  async (state) => Ok(state),
+      compute:  async (state) => Ok(newValue('nothing', null)),
       state: {
         value:    null,
         busy:     false,
@@ -98,6 +99,18 @@ export class NodeSpec {
   }
 
 
+  // .update
+  //
+  // Updates anything about the node, runs before computing new values.
+  // Returns a delta object to be merged into the node.
+  // Different from .compute which will actually send a new value to the outport.
+
+  update (fn: (node: Node) => NodeDelta) {
+    this.deltas.push({ update: fn })
+    return this
+  }
+
+
   // .setBlocking
   //
   // Enable/disable blocking.
@@ -137,7 +150,7 @@ export class NodeSpec {
 
   // .debounce
   //
-  // Debounce the node's compute function. 
+  // Debounce the node's compute function.
   // When it does run, it will run once with the latest input.
   // Any values received in the meantime will be discarded.
 
@@ -151,7 +164,8 @@ export class NodeSpec {
   //
   // Set the Computer function on this node.
   // The Computer function takes the node state and inport values
-  // and updates it's state and outport value.
+  // and returns a Value object to be sent to the outport.
+  // Doesn't return a delta
 
   compute (fn: Computer) {
     this.deltas.push({ compute: fn })
@@ -162,7 +176,6 @@ export class NodeSpec {
   // .port
   //
   // Define an inport with a name and PortSpec object
-
 
   port (portId: string, port: Port) {
     if (portId === 'out') {
@@ -177,11 +190,12 @@ export class NodeSpec {
   // .setPort
   //
   // Doesn't define a whole port but will set the manually-configured value on it's input
-  
-  setPort (portId: string, value: any) {
+
+  setPort (portId: string, rawValue: any) {
     this.deltas.push(({ inports }) => {
       const oldPort = inports[portId]
       if (!oldPort) throw new Error(`Port ${portId} does not exist on node ${this.node.id}`)
+      const value = newValue(oldPort.type, rawValue)
       return { inports: { ...inports, [portId]: { ...oldPort, value } } }
     })
     return this

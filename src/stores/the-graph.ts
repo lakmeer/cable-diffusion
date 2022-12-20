@@ -1,11 +1,13 @@
 
 import type { Readable, Writable } from 'svelte/store'
 import type { Graph, Node, Edge, Port, Result, NodeDelta } from "$types"
+import type { Value } from "$types"
 
 import { get, writable, derived } from 'svelte/store'
+import { newValue, compare } from '$lib/graph/value'
 import { now, red, blue, defer, sleep } from "$utils"
 
-const ENABLE_LOGGING = false
+const ENABLE_LOGGING = true
 
 
 
@@ -36,7 +38,11 @@ export const edgesFrom = (nodeId):Readable<Edge[]> =>
   derived(theGraph, $graph => $graph.edges.filter(e => e.from.id === nodeId))
 
 export const portSpy = (nodeId, portId):Readable<Port> => {
-  return derived(theGraph, $graph => $graph.nodes.find(n => n.id === nodeId).inports[portId])
+  if (portId === 'out') {
+    return derived(theGraph, $graph => $graph.nodes.find(n => n.id === nodeId).outport)
+  } else {
+    return derived(theGraph, $graph => $graph.nodes.find(n => n.id === nodeId).inports[portId])
+  }
 }
 
 
@@ -76,6 +82,10 @@ export const updateNodePort = (nodeId:string, portName:string, updates:any) => {
   }))
 }
 
+export const setPortValue = (nodeId:string, portName:string, value:Value) => {
+  updateNodePort(nodeId, portName, { value })
+}
+
 export const updateNodeState = (nodeId:string, updates:any) => {
   mutateNodes(nodes => nodes.map(storedNode => {
     if (storedNode.id !== nodeId) return storedNode
@@ -84,6 +94,20 @@ export const updateNodeState = (nodeId:string, updates:any) => {
       return { ...storedNode, state: updates(storedNode.state) }
     } else {
       return { ...storedNode, state: { ...storedNode.state, ...updates } }
+    }
+  }))
+}
+
+export const removeNodePort = (nodeId:string, portName:string) => {
+  mutateNodes(nodes => nodes.map(storedNode => {
+    if (storedNode.id !== nodeId) return storedNode
+
+    if (portName === 'out') {
+      return { ...storedNode, outport: null }
+    } else {
+      const newPorts = { ...storedNode.inports }
+      delete newPorts[portName]
+      return { ...storedNode, inports: newPorts }
     }
   }))
 }
@@ -159,50 +183,54 @@ const runSingleNode = async (nodeId:string, force = false) => {
   }
 
 
-  // Actual computation
+  // Port Typechecking
 
   const ports = Object.entries(node.inports);
 
   ports.forEach(([name, port]) => {
     if (port.type === 'any') return;
-    if (port.type !== typeof port.value) {
-      console.log("TypeError on port", name)
+    if (port.type !== port.value.type) {
+      console.log(port);
       updateNodeState(nodeId, { busy: false, error: true, time })
-      throw new TypeError(`Port ${name} expected ${port.type}, got ${typeof port.value}`)
+      throw new TypeError(`Port ${nodeId}.${name} expected ${port.type}, got ${port.value.type}`)
     }
   });
 
 
-  const result:Result<NodeDelta> = await node.compute(node.state, node.inports)
+  // Actual computation
+
+  console.log(nodeId,"XXXXX")
+  const result:Result<Value> = await node.compute(node.state, node.inports)
+  console.log(result)
 
   if (!result.ok) {
     console.error(formatNode(node), "computation failed:", result.error, node.state, node.inports)
     return updateNodeState(nodeId, { error: true, busy: false, time })
   }
 
-
-  const newState = result.unwrap()
+  const resultValue = result.unwrap()
 
   // If node's computer didn't set `value` correctly, there's a problem
-  if (newState.value === undefined || newState.value === null) {
-    console.error(formatNode(node), "`value` not set:", newState)
+  if (resultValue.value === undefined || resultValue.value === null) {
+    console.error(formatNode(node), "`value` not set:", resultValue)
     return updateNodeState(nodeId, { error: true, busy: false, time })
   }
 
+  logNode(node, "yields", resultValue.toString());
 
-  const changed = JSON.stringify(newState.value)
-              !== JSON.stringify(node.state.value)
+  const changed = compare(resultValue, node.outport.value)
 
   if (changed) {
-    logNode(node, node.state.value, "=>", newState.value)
+    logNode(node, node.outport.value.value, "=>", resultValue.value)
   } else if (!changed && force) {
     logNode(node, 'no change (but updates were forced)')
   } else {
     logNode(node, 'no change')
     return updateNodeState(nodeId, { busy: false, error: false, time })
   }
-
-  updateNodeState(nodeId, { ...newState, busy: false, error: false, time })
+  
+  const newState = { ...node.state, value: resultValue }
+  updateNodeState(nodeId, { state: newState, busy: false, error: false, time })
 
 
   // Find connected edges and update inport value with new value
@@ -212,7 +240,7 @@ const runSingleNode = async (nodeId:string, force = false) => {
       .filter(e => e.from.id === nodeId) // Get edges from this outport
       .filter(e => e.to.id   !== nodeId) // Never link to self
       .map(e => {
-        updateNodePort(e.to.id, e.to.port, { value: newState.value })
+        updateNodePort(e.to.id, e.to.port, { value: resultValue })
         return e.to.id
       })
 
@@ -274,9 +302,8 @@ export const loadSpec = (spec) => {
     edge.type = fromNode.outport.type
 
     if (fromNode.outport.multi) {
-      console.log('set multi on', toNode.id, edge.to.port)
       edge.multi = true
-      toNode.multi = true
+      toNode.state.multi = true
       toNode.inports[edge.to.port].multi = true
     }
 

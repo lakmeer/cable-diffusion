@@ -9,13 +9,18 @@
 
   loadSpec({
     nodes: [
-      new NodeSpec('Range',  "range").at( 50, 130).state('value', 7),
-      new NodeSpec('Subtract', "sub").at(450, 150).setPort('in1', 2),
+      new NodeSpec('Const', 'a').at(50, 100).setPort('set', 7),
+      new NodeSpec('Const', 'b').at(50, 300).setPort('set', 3),
+      //new NodeSpec('Range',  "range").at( 50, 130).setPort('max', 3),
+      new NodeSpec('Add',      "add").at(450, 150),
+      //new NodeSpec('Subtract', "sub").at(450, 150).setPort('in1', 2),
       new NodeSpec('Output',   "msg").at(850, 150),
     ],
     edges: [
-      { from: { id: 'range', port: 'out' }, to: { id: 'sub', port: 'in0' } },
-      { from: { id: 'sub',   port: 'out' }, to: { id: 'msg', port: 'text' } },
+      { from: { id: 'a',     port: 'out' }, to: { id: 'add', port: 'in0' } },
+      { from: { id: 'b',     port: 'out' }, to: { id: 'add', port: 'in1' } },
+      //{ from: { id: 'range', port: 'out' }, to: { id: 'sub', port: 'in0' } },
+      { from: { id: 'add',   port: 'out' }, to: { id: 'msg', port: 'text' } },
     ]
   })
 
@@ -32,11 +37,10 @@
   // - Bring in some diffusion node types
 
 
-
   // UI
 
-  import Cables     from '$parts/Cables.svelte'
-  import Cable      from '$parts/Cable.svelte'
+  import Cables from '$parts/Cables.svelte'
+  import Cable  from '$parts/Cable.svelte'
 
   import * as NodeComponents from '$nodes'
 </script>

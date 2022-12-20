@@ -1,15 +1,10 @@
 <script lang="ts">
-  import type { AnyDataflow } from "$types";
+  import { newValue } from "$lib/graph/value";
 
-  import { createEventDispatcher } from "svelte"
-  import { nodeSpy, updateNodePort } from "$store/the-graph";
+  import { nodeSpy, portSpy, updateNodePort, removeNodePort } from "$store/the-graph";
+  import IconButton from "$parts/IconButton.svelte";
 
   // Standard Port props
-  export let type:AnyDataflow;
-  export let label:string;
-  export let filled:boolean = false;
-  export let removable: boolean = false;
-  export let multi:boolean = false;
 
   // UI-specific props
   export let x: number = 0
@@ -23,41 +18,39 @@
 
   // Will get value set by parent node, but report updates directly
   // to the graph. Parent node doesn't have to worry about bindings
-  export let value;
+  let value;
+  let type:string;
+  let label:string;
 
+  let node = nodeSpy(nodeId)
+  let port = portSpy(nodeId, name)
 
-  console.log("New Port:", $$props.multi)
-
-
-
-  // Events
-
-  // Report user manually changing values
-  const emit = createEventDispatcher()
-  const onChange = (event) => emit('updated', event.target.value)
+  $: value     = $port.value?.value ?? ''
+  $: label     = $port.label
+  $: type      = $port.type
+  $: filled    = false;
+  $: removable = false;
+  $: multi     = false;
 
 
   // Positioning
 
-  let node = nodeSpy(nodeId)
-
+  let dom: HTMLElement
   let width: number = 0
   let height: number = 0
   let bcr = { x: 0, y: 0 }
 
-  // Initial values
-  let dom: HTMLElement
-
   node.subscribe(() => { if (dom) bcr = dom.getBoundingClientRect() })
-  
 
-  // Parent node was moved
-
-  // Keep graph updated
   $: x = bcr.x + (mode === 'out' ? width : 0)
   $: y = bcr.y + (height/2)
-  $: updateNodePort(nodeId, name, { value, x, y })
+  $: updateNodePort(nodeId, name, { x, y })
 
+
+  // Report user manually changing values
+
+  const onChange = () =>
+    updateNodePort(nodeId, name, { value: newValue(type, value) })
 </script>
 
 
@@ -88,6 +81,10 @@
   {/if}
 
   <div class="socket" />
+
+  {#if removable}
+    <IconButton icon="minus" small subtle on:click={() => removeNodePort(nodeId, name)} />
+  {/if}
 </div>
 
 
@@ -126,6 +123,7 @@
       padding-left: 0.4rem;
       padding-top: 0.07rem;
       background: var(--night);
+      margin-right: 0.5rem;
 
       &[type="number"] {
         max-width: 5rem;

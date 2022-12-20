@@ -7,12 +7,18 @@ import type { Result } from '../lib/result';
 // Types used by the Graph
 //
 
+export type Value = {
+  type:  string,
+  multi: boolean,
+  value: any,
+}
+
 export type Port = {
   type:     string,
   label:    string | null,
   x:        number,
   y:        number,
-  value:    any,
+  value:    Value,
   multi:    boolean,
   noSocket: boolean,
   filled:   boolean,
@@ -24,7 +30,7 @@ export type PortGroup = {
 }
 
 export type NodeState = {
-  value:   any,
+  value:   Value,
   busy:    boolean,
   error:   boolean,
   time:    number,
@@ -45,6 +51,7 @@ export type Node = {
   inports:    { [tag:string]: Port },
   outport:    Port,
   compute:    Computer,
+  updateFn?:  (node: Node) => NodeDelta,
   initFn?:    (node:Node) => Node,
   newPort?:   () => Port,
 }
@@ -65,7 +72,7 @@ export type NodeDelta = {
 }
 
 export type Computer = (state:NodeState, inports:PortGroup) =>
-  Promise<Result<NodeDelta>>
+  Promise<Result<Value>>
 
 export type NodeConstructor = (node:Node) =>
   Node | NodeSpec
