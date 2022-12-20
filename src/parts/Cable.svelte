@@ -5,7 +5,7 @@
   import { getContext, onMount } from 'svelte'
 
   import { nodeSpy } from "$store/the-graph"
-  import { xyToPoint } from "$utils"
+  import { hyp, v2add, xyOnly } from "$utils"
 
   export let from:  { id: string, port: string }
   export let to:    { id: string, port: string }
@@ -15,22 +15,27 @@
   export let multi: boolean = false
 
 
+  // Bezier Curve
+
   let color:string = `--type-${type}`
 
   let curve:Curve = {
-    termA: [ 0, 0 ],
-    termB: [ 0, 0 ],
-    ctrlA: [ 0, 0 ],
-    ctrlB: [ 0, 0 ],
+    termA: { x: 0, y: 0 },
+    termB: { x: 0, y: 0 },
+    ctrlA: { x: 0, y: 0 },
+    ctrlB: { x: 0, y: 0 },
   }
 
   let fromNode = nodeSpy(from.id)
   let toNode   = nodeSpy(to.id)
 
-  $: curve.termA = xyToPoint($fromNode.outport)
-  $: curve.termB = xyToPoint($toNode.inports[to.port])
-  $: curve.ctrlA = xyToPoint($fromNode.outport, [ 100, 0 ])
-  $: curve.ctrlB = xyToPoint($toNode.inports[to.port], [ -100, 0 ])
+  $: dist = hyp($fromNode.outport, $toNode.inports[to.port])
+  $: ctrlStrength = dist/2
+
+  $: curve.termA = xyOnly($fromNode.outport)
+  $: curve.termB = xyOnly($toNode.inports[to.port])
+  $: curve.ctrlA = v2add($fromNode.outport, { x: ctrlStrength, y: 0 })
+  $: curve.ctrlB = v2add($toNode.inports[to.port], { x: -ctrlStrength, y: 0 })
 
 
   // Brightness animation

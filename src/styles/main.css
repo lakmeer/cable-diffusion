@@ -5,6 +5,7 @@
 
   // Semantic color names: Data types
 
+  --type-any:     var(--dark);
   --type-string:  var(--gold);
   --type-number:  var(--blue);
   --type-config:  var(--green);

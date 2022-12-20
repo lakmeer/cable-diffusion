@@ -13,6 +13,7 @@ export type Port = {
   x:        number,
   y:        number,
   value:    any,
+  multi:    boolean,
   noSocket: boolean,
   filled:   boolean,
   removable:boolean,

@@ -85,11 +85,11 @@ export const Divide = (spec:NodeSpec) =>
 
 export const Output = (spec:NodeSpec) =>
   spec
-    .port('text', PortSpec('string', "", { label: 'Text' }))
+    .port('text', PortSpec('any', "", { label: 'Anything' }))
     .compute(async (state, ports) => {
       const text = ports.text.value;
       green(`Output::result - ${text}`)
-      return Ok({ last: ports.text.value, value: text, rnd: Math.random() })
+      return Ok({ last: text, value: text, rnd: Math.random() })
     })
 
 
@@ -119,11 +119,21 @@ export const Range = (spec:NodeSpec) =>
     .port('step', PortSpec('number', 0, { label: "Step" }))
     .port('out',  PortSpec('number', 0, { label: "Value", multi: true }))
     .compute(async (state, ports) => {
+
       const min  = ports.min.value
       const max  = ports.max.value
       const step = ports.step.value
+      console.log('Range::compute - ports', state, ports)
+
       if (min === null || max === null || step === null) return Err('Missing input')
-      return Ok(Array.from({ length: (max - min) / step }, (_, i) => min + step * i))
+
+      
+
+      return defer(Ok({ value: 0 }))
+
+      return defer(Ok({
+        value: Array.from({ length: (max - min) / step }, (_, i) => min + step * i)
+      }))
     })
 
 

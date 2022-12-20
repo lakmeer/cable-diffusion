@@ -12,15 +12,14 @@
   // Props
 
   export let id: string
-  export let title: string = "Untitled Node"
-  export let color: string = "--blue"  // Should be a css var
+  export let title: string = "Untitled"
+  export let color: string = "--dark"   // A css var
   export let autocompute: boolean = false
 
   let node:Readable<Node> = nodeSpy(id)
   let run  = () => runNode(id)
   let add  = () => addPort(id)
 
-  console.log("Node", id, "created")
 
   // Drag setup
 

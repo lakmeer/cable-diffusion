@@ -36,8 +36,14 @@ export const getCssValue = (el, prop) =>
 export const pluck = (key) => (obj) =>
   obj[key]
 
-export const hyp = ([ x1, y1 ], [ x2, y2 ]) =>
-  sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2))
+export const hyp = (a, b) =>
+  sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2))
+
+export const v2add = (a, b) =>
+  ({ x: a.x + b.x, y: a.y + b.y })
+
+export const xyOnly = (obj) =>
+  ({ x: obj.x, y: obj.y })
 
 export const invoke = (...args) => (λ) =>
   λ(...args)
@@ -57,9 +63,6 @@ export const after = async (ms, λ) => {
 
 export const defer = (it:T):Promise<T> =>
   new Promise(done => setTimeout(() => done(it), 0))
-
-export const xyToPoint = ({ x, y }, offset?:Point):Point =>
-  offset ? [ x + offset[0], y + offset[1] ] : [ x, y ]
 
 export const rgbLerp = (hexA, hexB, t) => {
 

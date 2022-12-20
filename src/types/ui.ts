@@ -5,7 +5,10 @@
 
 export type AnyDataflow = string
 
-export type Point = [ number, number ]
+export type Point = {
+  x: number,
+  y: number
+}
 
 export type Cable = {
   type:       string,

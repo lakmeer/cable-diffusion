@@ -9,15 +9,13 @@
 
   loadSpec({
     nodes: [
-      new NodeSpec('Const',    "a").at(50,  50).state('value', 3),
-      new NodeSpec('Const',    "b").at(50, 280).state('value', 7),
-      new NodeSpec('Subtract', "c").at(450, 150),
-      new NodeSpec('Output', "msg").at(850, 150),
+      new NodeSpec('Range',  "range").at( 50, 130).state('value', 7),
+      new NodeSpec('Subtract', "sub").at(450, 150).setPort('in1', 2),
+      new NodeSpec('Output',   "msg").at(850, 150),
     ],
     edges: [
-      { from: { id: 'a', port: 'out' }, to: { id: 'c',   port: 'in0' } },
-      { from: { id: 'b', port: 'out' }, to: { id: 'c',   port: 'in1' } },
-      { from: { id: 'c', port: 'out' }, to: { id: 'msg', port: 'text' } },
+      { from: { id: 'range', port: 'out' }, to: { id: 'sub', port: 'in0' } },
+      { from: { id: 'sub',   port: 'out' }, to: { id: 'msg', port: 'text' } },
     ]
   })
 
@@ -26,6 +24,7 @@
 
   // Todo:
   //
+  // - Multivalues
   // - Investigate state machine model for nodes
   // - Implement actor-style inbox and then use that for busy/debounce
   // - More complex test graph

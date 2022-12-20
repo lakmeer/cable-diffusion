@@ -9,6 +9,7 @@
   export let label:string;
   export let filled:boolean = false;
   export let removable: boolean = false;
+  export let multi:boolean = false;
 
   // UI-specific props
   export let x: number = 0
@@ -23,6 +24,10 @@
   // Will get value set by parent node, but report updates directly
   // to the graph. Parent node doesn't have to worry about bindings
   export let value;
+
+
+  console.log("New Port:", $$props.multi)
+
 
 
   // Events
@@ -62,6 +67,7 @@
   bind:clientHeight={height} 
   class="Port {mode}"
   class:filled
+  class:multi
   class:no-socket={noSocket}
   data-type={type}>
 
@@ -153,15 +159,23 @@
     }
 
     &.filled .socket {
-      border-style: solid;
+      //border-style: solid;
       background: currentColor;
     }
 
     &.no-socket .socket {
       display: none;
     }
-  }
 
+    &.multi .socket {
+      border-width: 2px;
+      box-shadow:
+        0 0 0 3px var(--bg-color) inset,
+        0 0 0 1px currentColor,
+        0 0 2px 1px var(--shade-color);
+    }
+  }
+  
 
   // Modes
 

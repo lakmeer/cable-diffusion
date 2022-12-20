@@ -26,8 +26,7 @@
   const drawCable = ({ type, multi, brightness, curve }:Cable) => {
     const { termA, termB, ctrlA, ctrlB } = curve
 
-    ctx.strokeStyle = rgbLerp(cssVar(`type-${type}`), '#ffffff', brightness)
-
+    const color = rgbLerp(cssVar(`type-${type}`), '#ffffff', brightness)
 
     // Control helpers
     /*
@@ -42,13 +41,25 @@
     */
 
     // Main cable
-    ctx.lineWidth = multi ? 8 : 4 + 2 * brightness
-    ctx.setLineDash([])
     ctx.beginPath()
-    ctx.moveTo(...termA)
-    ctx.bezierCurveTo(...ctrlA, ...ctrlB, ...termB)
+    ctx.strokeStyle = color
+    ctx.lineWidth = 4 + 2 * brightness
+
+    ctx.moveTo(termA.x, termA.y)
+    ctx.bezierCurveTo(ctrlA.x, ctrlA.y, ctrlB.x, ctrlB.y, termB.x, termB.y)
+
+    if (multi) {
+      ctx.lineWidth = 10 + 2 * brightness
+      ctx.stroke()
+
+      // Resume normal operation
+      ctx.strokeStyle = cssVar('bg-color')
+      ctx.lineWidth = 4 - 1 * brightness
+    }
+
     ctx.stroke()
-  };
+
+  }
 
   const drawAll = (cables: Cable[]) => {
     ctx?.clearRect(0, 0, width, height)

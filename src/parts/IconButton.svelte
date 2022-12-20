@@ -7,7 +7,7 @@
 </script>
 
 
-<button class="IconButton" on:click|preventDefault>
+<button class="IconButton {icon}" on:click|preventDefault>
   {#if icon === 'run'}
     <Fa icon={ spin ? faRotateRight : faPlay} {spin} />
   {:else if icon === 'plus'}
@@ -21,8 +21,15 @@
 <style lang="postcss">
   .IconButton {
     font-size: 1.2rem;
-    padding:   0px;
+    padding:   3px;
     height:    36px;
     width:     36px;
+
+
+    // Aesthetic adjustments
+
+    &.run :global(svg) {
+      transform: translateX(1px);
+    }
   }
 </style>

@@ -174,6 +174,20 @@ export class NodeSpec {
   }
 
 
+  // .setPort
+  //
+  // Doesn't define a whole port but will set the manually-configured value on it's input
+  
+  setPort (portId: string, value: any) {
+    this.deltas.push(({ inports }) => {
+      const oldPort = inports[portId]
+      if (!oldPort) throw new Error(`Port ${portId} does not exist on node ${this.node.id}`)
+      return { inports: { ...inports, [portId]: { ...oldPort, value } } }
+    })
+    return this
+  }
+
+
   // .init
   //
   // Final chance for the node to do some custom initialisation.

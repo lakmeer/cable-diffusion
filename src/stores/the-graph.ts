@@ -161,12 +161,25 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   // Actual computation
 
+  const ports = Object.entries(node.inports);
+
+  ports.forEach(([name, port]) => {
+    if (port.type === 'any') return;
+    if (port.type !== typeof port.value) {
+      console.log("TypeError on port", name)
+      updateNodeState(nodeId, { busy: false, error: true, time })
+      throw new TypeError(`Port ${name} expected ${port.type}, got ${typeof port.value}`)
+    }
+  });
+
+
   const result:Result<NodeDelta> = await node.compute(node.state, node.inports)
 
   if (!result.ok) {
     console.error(formatNode(node), "computation failed:", result.error, node.state, node.inports)
     return updateNodeState(nodeId, { error: true, busy: false, time })
   }
+
 
   const newState = result.unwrap()
 
@@ -175,6 +188,7 @@ const runSingleNode = async (nodeId:string, force = false) => {
     console.error(formatNode(node), "`value` not set:", newState)
     return updateNodeState(nodeId, { error: true, busy: false, time })
   }
+
 
   const changed = JSON.stringify(newState.value)
               !== JSON.stringify(node.state.value)
@@ -257,8 +271,14 @@ export const loadSpec = (spec) => {
     fromNode.outport.filled = true
     toNode.inports[edge.to.port].filled = true
 
-    edge.type  = fromNode.outport.type
-    edge.multi = fromNode.multi
+    edge.type = fromNode.outport.type
+
+    if (fromNode.outport.multi) {
+      console.log('set multi on', toNode.id, edge.to.port)
+      edge.multi = true
+      toNode.multi = true
+      toNode.inports[edge.to.port].multi = true
+    }
 
     graph.edges.push(edge)
   })
