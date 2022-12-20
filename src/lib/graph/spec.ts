@@ -1,6 +1,8 @@
 
 import type { Node, Port, Computer, NodeState } from '$types'
 
+import { Ok } from '$lib/result'
+
 import { now } from '$utils'
 import * as Nodes from './nodes'
 
@@ -46,7 +48,7 @@ export class NodeSpec {
       type:     type,
       inports:  {},
       outport:  null,
-      compute:  async (state) => state,
+      compute:  async (state) => Ok(state),
       state: {
         value:    null,
         busy:     false,

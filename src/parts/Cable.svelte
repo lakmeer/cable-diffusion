@@ -3,7 +3,6 @@
   import type { Cable, Curve } from "$types"
 
   import { getContext, onMount } from 'svelte'
-  import { tweened } from 'svelte/motion'
 
   import { nodeSpy } from "$store/the-graph"
   import { xyToPoint } from "$utils"

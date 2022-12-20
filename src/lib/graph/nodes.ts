@@ -83,7 +83,7 @@ export const Divide = (spec:NodeSpec) =>
 // - rnd: number - random number to trigger updates
 // - last: any   - the most recently received value
 
-export const Output:NodeConstructor = (spec:NodeSpec) =>
+export const Output = (spec:NodeSpec) =>
   spec
     .port('text', PortSpec('string', "", { label: 'Text' }))
     .compute(async (state, ports) => {
@@ -95,9 +95,8 @@ export const Output:NodeConstructor = (spec:NodeSpec) =>
 
 // Spread
 
-export const Spread:NodeConstructor = (spec:NodeSpec) =>
+export const Spread = (spec:NodeSpec) =>
   spec
-    .setMultiple(true)
     .port('mid',   PortSpec('number', 0, { label: "Midpoint" }))
     .port('step',  PortSpec('number', 0, { label: "Step" }))
     .port('times', PortSpec('number', 0, { label: "Times" }))
@@ -113,9 +112,8 @@ export const Spread:NodeConstructor = (spec:NodeSpec) =>
 
 // Range
 
-export const Range:NodeConstructor = (spec:NodeSpec) =>
+export const Range = (spec:NodeSpec) =>
   spec
-    .setMultiple(true)
     .port('min',  PortSpec('number', 0, { label: "Min" }))
     .port('max',  PortSpec('number', 0, { label: "Max" }))
     .port('step', PortSpec('number', 0, { label: "Step" }))
@@ -140,12 +138,14 @@ export const Range:NodeConstructor = (spec:NodeSpec) =>
 //
 // Captures positive and negative prompt values together.
 
-export const Prompt:NodeConstructor = (spec:NodeSpec) =>
+export const Prompt = (spec:NodeSpec) =>
   spec
     .port('pos', PortSpec('string', "", { label: "Positive" }))
     .port('neg', PortSpec('string', "", { label: "Negative" }))
     .port('out', PortSpec('prompt', "", { label: "Value" }))
     .compute(async (state, ports) => {
-      return Ok(ports.pos.value + " ### " + ports.neg.value)
+      const pos = ports.pos.value
+      const neg = ports.neg.value
+      return Ok({ pos, neg, value: pos + " ### " + neg })
     })
 

@@ -1,6 +1,4 @@
 <script lang="ts">
-  import type { Node, Edge } from "$types"
-
   import { loadSpec, allNodes, allEdges, runGraph } from '$store/the-graph';
   import { NodeSpec } from '$lib/graph/spec'
 

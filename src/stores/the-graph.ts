@@ -1,6 +1,6 @@
 
 import type { Readable, Writable } from 'svelte/store'
-import type { Graph, Node, Edge, Port } from "$types"
+import type { Graph, Node, Edge, Port, Result, NodeDelta } from "$types"
 
 import { get, writable, derived } from 'svelte/store'
 import { now, red, blue, defer, sleep } from "$utils"
@@ -161,7 +161,7 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   // Actual computation
 
-  const result = await node.compute(node.state, node.inports)
+  const result:Result<NodeDelta> = await node.compute(node.state, node.inports)
 
   if (!result.ok) {
     console.error(formatNode(node), "computation failed:", result.error, node.state, node.inports)

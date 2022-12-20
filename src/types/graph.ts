@@ -1,6 +1,6 @@
 
 import type { NodeSpec } from '../lib/graph/spec'
-import { Result, Ok, Err } from './result';
+import type { Result } from '../lib/result';
 
 
 //
@@ -18,6 +18,10 @@ export type Port = {
   removable:boolean,
 }
 
+export type PortGroup = {
+  [key: string]:Port,
+}
+
 export type NodeState = {
   value:   any,
   busy:    boolean,
@@ -25,10 +29,6 @@ export type NodeState = {
   time:    number,
   bounced: boolean,
   [key:string]:any,
-}
-
-export type PortGroup = {
-  [key: string]:Port,
 }
 
 export type Node = {
@@ -59,8 +59,12 @@ export type Graph = {
   edges: Edge[],
 }
 
+export type NodeDelta = {
+  [key:string]: any,
+}
+
 export type Computer = (state:NodeState, inports:PortGroup) =>
-  Promise<Result<NodeState>>
+  Promise<Result<NodeDelta>>
 
 export type NodeConstructor = (node:Node) =>
   Node | NodeSpec

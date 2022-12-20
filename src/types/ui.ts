@@ -8,9 +8,10 @@ export type AnyDataflow = string
 export type Point = [ number, number ]
 
 export type Cable = {
-  type:  string,
-  multi: boolean,
-  curve: Curve,
+  type:       string,
+  multi:      boolean,
+  curve:      Curve,
+  brightness: number,
 }
 
 export type Curve = {
