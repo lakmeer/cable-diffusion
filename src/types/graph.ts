@@ -11,6 +11,7 @@ export type Value = {
   type:  string,
   multi: boolean,
   value: any,
+  size:  number,
 }
 
 export type Port = {
@@ -21,6 +22,7 @@ export type Port = {
   value:    Value,
   multi:    boolean,
   noSocket: boolean,
+  noInput:  boolean,
   filled:   boolean,
   removable:boolean,
 }
@@ -30,7 +32,6 @@ export type PortGroup = {
 }
 
 export type NodeState = {
-  value:   Value,
   busy:    boolean,
   error:   boolean,
   time:    number,
@@ -60,6 +61,7 @@ export type Edge = {
   from:   { id: string, port: string },
   to:     { id: string, port: string },
   type?:  string,
+  multi?: boolean,
 }
 
 export type Graph = {

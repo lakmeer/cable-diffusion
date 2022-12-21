@@ -1,13 +1,14 @@
 
 import type { Readable, Writable } from 'svelte/store'
-import type { Graph, Node, Edge, Port, Result, NodeDelta } from "$types"
+import type { Graph, Node, Edge, Port, Result } from "$types"
 import type { Value } from "$types"
+import type { NodeSpec } from "$lib/graph/spec"
 
 import { get, writable, derived } from 'svelte/store'
-import { newValue, compare } from '$lib/graph/value'
+import { compare, format as formatValue } from '$lib/graph/value'
 import { now, red, blue, defer, sleep } from "$utils"
 
-const ENABLE_LOGGING = true
+const ENABLE_LOGGING = false
 
 
 
@@ -69,6 +70,7 @@ export const updateNode = (nodeId:string, updates: any) => {
 }
 
 export const updateNodePort = (nodeId:string, portName:string, updates:any) => {
+  //console.log('updateNodePort', nodeId, portName, updates)
   mutateNodes(nodes => nodes.map(storedNode => {
     if (storedNode.id !== nodeId) return storedNode
 
@@ -199,9 +201,9 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   // Actual computation
 
-  console.log(nodeId,"XXXXX")
   const result:Result<Value> = await node.compute(node.state, node.inports)
-  console.log(result)
+
+  //await sleep(500)
 
   if (!result.ok) {
     console.error(formatNode(node), "computation failed:", result.error, node.state, node.inports)
@@ -216,19 +218,27 @@ const runSingleNode = async (nodeId:string, force = false) => {
     return updateNodeState(nodeId, { error: true, busy: false, time })
   }
 
-  logNode(node, "yields", resultValue.toString());
+  logNode(node, "yields", formatValue(resultValue))
 
-  const changed = compare(resultValue, node.outport.value)
+  // Since the last-known-value is stored on the outport, we don't have
+  // to flow values downstream if the value hasn't changed. We also don't
+  // need to check for changes if the node doesn't have an outport; in this
+  // case the node will fire every time, which is the desired behavior for
+  // nodes that only have side effects and not outputs.
 
-  if (changed) {
-    logNode(node, node.outport.value.value, "=>", resultValue.value)
-  } else if (!changed && force) {
-    logNode(node, 'no change (but updates were forced)')
-  } else {
-    logNode(node, 'no change')
-    return updateNodeState(nodeId, { busy: false, error: false, time })
+  if (node.outport && node.outport.value === resultValue) {
+    const changed = compare(resultValue, node.outport.value)
+
+    if (changed) {
+      logNode(node, node.outport.value.value, "=>", resultValue.value)
+    } else if (!changed && force) {
+      logNode(node, 'no change (but updates were forced)')
+    } else {
+      logNode(node, 'no change')
+      return updateNodeState(nodeId, { busy: false, error: false, time })
+    }
   }
-  
+
   const newState = { ...node.state, value: resultValue }
   updateNodeState(nodeId, { state: newState, busy: false, error: false, time })
 
@@ -269,7 +279,6 @@ export const addPort = (nodeId:string) => {
 
 export const runGraph = async () => {
   if (ENABLE_LOGGING) {
-    console.clear()
     red("New graph run...")
   }
 
@@ -284,12 +293,14 @@ export const runGraph = async () => {
 // Loading & Saving
 //
 
-export const loadSpec = (spec) => {
+type GraphSpec = { nodes: NodeSpec[], edges: Edge[] }
+
+export const loadSpec = (spec: GraphSpec) => {
 
   const graph:Graph = { nodes: [], edges: [] }
 
-  // For each node, create a store
-  graph.nodes = spec.nodes.map(node => node.done())
+  // For each node, complete the spec
+  graph.nodes = spec.nodes.map((node:NodeSpec) => node.done())
 
   // For each edge, find the matching ports and mark them as filled
   spec.edges.forEach(edge => {

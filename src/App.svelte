@@ -1,28 +1,13 @@
 <script lang="ts">
   import { loadSpec, allNodes, allEdges, runGraph } from '$store/the-graph';
-  import { NodeSpec } from '$lib/graph/spec'
+  import testGraph from '$data/debug'
 
   import ErrorBox from '$parts/ErrorBox.svelte'
 
 
   // Setup
 
-  loadSpec({
-    nodes: [
-      new NodeSpec('Const', 'a').at(50, 100).setPort('set', 7),
-      new NodeSpec('Const', 'b').at(50, 300).setPort('set', 3),
-      //new NodeSpec('Range',  "range").at( 50, 130).setPort('max', 3),
-      new NodeSpec('Add',      "add").at(450, 150),
-      //new NodeSpec('Subtract', "sub").at(450, 150).setPort('in1', 2),
-      new NodeSpec('Output',   "msg").at(850, 150),
-    ],
-    edges: [
-      { from: { id: 'a',     port: 'out' }, to: { id: 'add', port: 'in0' } },
-      { from: { id: 'b',     port: 'out' }, to: { id: 'add', port: 'in1' } },
-      //{ from: { id: 'range', port: 'out' }, to: { id: 'sub', port: 'in0' } },
-      { from: { id: 'add',   port: 'out' }, to: { id: 'msg', port: 'text' } },
-    ]
-  })
+  loadSpec(testGraph);
 
   runGraph();
 

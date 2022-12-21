@@ -5,7 +5,7 @@
 </script>
 
 <Node id={id} title="Spread" color="--blue">
-  <div class="NodeContent">
+  <div class="NodeContent" slot="body">
     <h4> TODO: Spread diagram </h4>
   </div>
 </Node>

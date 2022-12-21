@@ -14,7 +14,6 @@
   export let id: string
   export let title: string = "Untitled"
   export let color: string = "--dark"   // A css var
-  export let autocompute: boolean = false
 
   let node:Readable<Node> = nodeSpy(id)
   let run  = () => runNode(id)

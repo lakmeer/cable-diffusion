@@ -12,3 +12,4 @@ export { default as Output   } from './Output.svelte'
 export { default as Range    } from './Range.svelte'
 export { default as Spread   } from './Spread.svelte'
 
+export { default as InputTest } from './Generic.svelte'

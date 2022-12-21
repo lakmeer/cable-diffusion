@@ -9,7 +9,7 @@
   --type-string:  var(--gold);
   --type-number:  var(--blue);
   --type-config:  var(--green);
-  --type-vector:  var(--red);
+  --type-boolean: var(--lime);
   --type-gen:     var(--pink);
 
 

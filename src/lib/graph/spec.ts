@@ -20,11 +20,8 @@ import * as Nodes from './nodes'
 // Helpers
 
 const merge = (node:Node, delta:object) => {
-  if (typeof delta === 'function') {
-    Object.assign(node, delta(node))
-  } else {
-    Object.assign(node, delta)
-  }
+  if (typeof delta === 'function') delta = delta(node)
+  Object.assign(node, delta)
 }
 
 
@@ -49,9 +46,8 @@ export class NodeSpec {
       type:     type,
       inports:  {},
       outport:  null,
-      compute:  async (state) => Ok(newValue('nothing', null)),
+      compute:  async () => Ok(newValue('number', 0)),
       state: {
-        value:    null,
         busy:     false,
         error:    false,
         time:     0,
@@ -192,12 +188,15 @@ export class NodeSpec {
   // Doesn't define a whole port but will set the manually-configured value on it's input
 
   setPort (portId: string, rawValue: any) {
-    this.deltas.push(({ inports }) => {
-      const oldPort = inports[portId]
-      if (!oldPort) throw new Error(`Port ${portId} does not exist on node ${this.node.id}`)
-      const value = newValue(oldPort.type, rawValue)
-      return { inports: { ...inports, [portId]: { ...oldPort, value } } }
-    })
+    this.deltas.push(({ inports }) => ({
+      inports: {
+        ...inports,
+        [portId]: {
+          ...inports[portId],
+          value: newValue(inports[portId].type, rawValue) 
+        }
+      }
+    }))
     return this
   }
 

@@ -1,22 +1,30 @@
 
 import type { Value } from "$types"
 
-export const newValue = (type: string, value: any): Value => {
-  const multi = typeof value === 'object'
+export const newValue = (type: string, val: any): Value => {
+  const multi = Array.isArray(val)
 
+  // Type checking
   if (type != 'any') {
     if (multi) {
-      if (typeof value[0] !== type) {
-        throw new Error(`Value::Error - expected <${type}> got [<${typeof value[0]}>]`)
+      if (typeof val[0] !== type) {
+        throw new Error(`Value::Error - expected <${type}> got [<${typeof val[0]}>]`)
       }
     } else {
-      if (typeof value !== type) {
-        throw new Error(`Value::Error - expected <${type}> got <${typeof value}>`)
+      if (typeof val !== type) {
+        throw new Error(`Value::Error - expected <${type}> got <${typeof val}>`)
       }
     }
   }
 
-  return { type, multi, value }
+  const value = multi ? val : [val]
+ 
+  return {
+    type,
+    multi,
+    value,
+    size: multi ? value.length : 1
+  }
 }
 
 export const compare = (a: Value, b: Value): boolean =>

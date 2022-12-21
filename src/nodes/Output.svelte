@@ -6,7 +6,7 @@
   export let id: string;
   let node = nodeSpy(id);
 
-  $: displayValue = JSON.stringify($node.state.last, null, 2)
+  $: displayValue = $node.inports.text.value.value;
 </script>
 
 

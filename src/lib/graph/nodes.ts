@@ -29,11 +29,9 @@ import { green, defer }         from "$utils"
 
 export const Const = (spec:NodeSpec) =>
   spec
-    .state('value', newValue('number', 0))
     .port('set', newPort('number', 0, { label: 'Value', noSocket: true }))
     .port('out', newPort('number', 0, { label: 'Value' }))
     .compute(async (_, ports) => defer(Ok(ports.set.value)))
-    .init(({ inports, state }) => inports.set.value = state.value)
 
 
 export const Add = (spec:NodeSpec) =>
@@ -86,7 +84,7 @@ export const Divide = (spec:NodeSpec) =>
 
 export const Output = (spec:NodeSpec) =>
   spec
-    .port('text', newPort('any', "", { label: 'Anything' }))
+    .port('text', newPort('any', { label: '' }))
     .update((node) => {
       console.log(green(node.inports.text.value.value))
       return { }
@@ -98,10 +96,10 @@ export const Output = (spec:NodeSpec) =>
 
 export const Spread = (spec:NodeSpec) =>
   spec
-    .port('mid',   newPort('number', 0, { label: "Midpoint" }))
-    .port('step',  newPort('number', 0, { label: "Step" }))
-    .port('times', newPort('number', 0, { label: "Times" }))
-    .port('out',   newPort('number', 0, { label: "Value", multi: true }))
+    .port('mid',   newPort('number', { value: 3, label: "Midpoint" }))
+    .port('step',  newPort('number', { value: 1, label: "Step" }))
+    .port('times', newPort('number', { value: 5, label: "Times" }))
+    .port('out',   newPort('number', { label: "Value", multi: true }))
     .compute(async (state, ports) => {
       const mid   = ports.mid.value.value
       const step  = ports.step.value.value
@@ -115,10 +113,10 @@ export const Spread = (spec:NodeSpec) =>
 
 export const Range = (spec:NodeSpec) =>
   spec
-    .port('min',  newPort('number', 0, { label: "Min" }))
-    .port('max',  newPort('number', 2, { label: "Max" }))
-    .port('step', newPort('number', 1, { label: "Step" }))
-    .port('out',  newPort('number', 0, { label: "Value", multi: true }))
+    .port('min',  newPort('number', { value: 0, label: "Min" }))
+    .port('max',  newPort('number', { value: 3, label: "Max" }))
+    .port('step', newPort('number', { value: 1, label: "Step" }))
+    .port('out',  newPort('number', { value: 1, label: "Value", multi: true }))
     .compute(async (_, ports) => {
       const min  = ports.min.value.value
       const max  = ports.max.value.value
@@ -147,12 +145,28 @@ export const Range = (spec:NodeSpec) =>
 
 export const Prompt = (spec:NodeSpec) =>
   spec
-    .port('pos', newPort('string', "", { label: "Positive" }))
-    .port('neg', newPort('string', "", { label: "Negative" }))
-    .port('out', newPort('prompt', "", { label: "Value" }))
+    .port('pos', newPort('string', { label: "Positive" }))
+    .port('neg', newPort('string', { label: "Negative" }))
+    .port('out', newPort('prompt', { label: "Value" }))
     .compute(async (state, ports) => {
       const pos = ports.pos.value.value
       const neg = ports.neg.value.value
       return defer(Ok(newValue('prompt', { pos, neg })))
     })
+
+
+
+
+
+//
+// Debugging Nodes
+//
+
+export const InputTest = (spec:NodeSpec) =>
+  spec
+    .port('in1', newPort('number',  { label: "Number"  }))
+    .port('in2', newPort('string',  { label: "String"  }))
+    .port('in3', newPort('boolean', { label: "Boolean" }))
+    .port('in4', newPort('number',  { label: "[Number]", multi: true }))
+
 

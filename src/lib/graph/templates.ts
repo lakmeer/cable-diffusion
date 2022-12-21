@@ -1,26 +1,30 @@
 
-import type { Value, Port, Computer } from '$types';
+import type { Port } from '$types';
 import type { NodeSpec } from './spec'
 
 import { newValue } from '$lib/graph/value'
-import { Ok, Err } from "$lib/result"
-import { defer } from "$utils"
+import { defaultValueForType } from "$utils"
 
 
 
 // Port Helper (not a builder)
 
-export const newPort = (type:string, initialValue:any = 0, others:any = {}):Port => ({
-  x: 0,
-  y: 0,
-  type,
-  value: newValue(type, initialValue),
-  label: null,
-  filled: false,
-  noSocket: false,
-  removable: false,
-  ...others
-})
+export const newPort = (type:string, others:any = {}):Port => {
+  const initialValue = others.value ?? defaultValueForType(type)
+  delete others.value
+
+  return {
+    x: 0,
+    y: 0,
+    type,
+    value: newValue(type, initialValue),
+    label: null,
+    filled: false,
+    noSocket: false,
+    removable: false,
+    ...others
+  }
+}
 
 
 //
@@ -28,9 +32,8 @@ export const newPort = (type:string, initialValue:any = 0, others:any = {}):Port
 //
 
 export const TwoInOneOut = (type: string) => (spec:NodeSpec) => {
-  const startValue = type === 'number' ? 0 : ''
+  const startValue = defaultValueForType(type)
   return spec
-    .initialState({ out: startValue, args: [] })
     .port('in0', newPort(type, startValue))
     .port('in1', newPort(type, startValue))
     .port('out', newPort(type, startValue, { label: 'Value' }))
