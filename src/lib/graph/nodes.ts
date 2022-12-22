@@ -126,7 +126,6 @@ export const Range = (spec:NodeSpec) =>
       const max  = ports.max.value.value[0]
       const step = ports.step.value.value[0]
 
-      console.log("Range", min, max, step)
       if (min === null || max === null || step === null) return Err('Missing input')
       if (step === 0) return Err('Step cannot be zero')
       if (min > max) return Err('Min cannot be greater than max')

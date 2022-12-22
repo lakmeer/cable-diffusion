@@ -8,7 +8,7 @@ import { get, writable, derived } from 'svelte/store'
 import { compare, format as formatValue } from '$lib/graph/value'
 import { now, red, blue, defer, sleep } from "$utils"
 
-const ENABLE_LOGGING = true
+const ENABLE_LOGGING = false
 
 
 
@@ -84,7 +84,6 @@ export const updateNodePort = (nodeId:string, portName:string, updates:any) => {
 }
 
 export const setPortValue = (nodeId:string, portName:string, value:Value) => {
-  console.log('setPortValue', nodeId, portName, value)
   updateNodePort(nodeId, portName, { value, multi: value.size > 1 })
 }
 
@@ -229,7 +228,6 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   logNode(node, "yields", formatValue(resultValue))
 
-
   if (node.outport) {
     const changed = !compare(resultValue, node.outport.value)
 
@@ -248,8 +246,6 @@ const runSingleNode = async (nodeId:string, force = false) => {
   if (node.outport) {
     // Find connected edges and update inport value with new value
     // Save any found nodes for the next pass
-
-    console.log("Updating outport value", nodeId, resultValue.value)
 
     setPortValue(nodeId, 'out', resultValue)
 
