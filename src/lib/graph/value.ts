@@ -1,7 +1,7 @@
 
 import type { Value } from "$types"
 
-export const newValue = (type: string, val: any): Value => {
+export const newValue = (type: string, val: Value['value']): Value => {
   const multi = Array.isArray(val)
 
   // Type checking

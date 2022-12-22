@@ -5,5 +5,5 @@
 </script>
 
 
-<Node id={id} title="Const" color="--teal" autocompute />
+<Node id={id} title="Const" color="--teal" />
 

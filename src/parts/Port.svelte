@@ -5,8 +5,10 @@
 
   import ErrorText    from "$parts/ErrorText.svelte"
   import IconButton   from "$parts/IconButton.svelte"
+
   import ValueInput   from "$parts/ValueInput.svelte"
   import ValueDisplay from "$parts/ValueDisplay.svelte"
+  import ValueOutput  from "$parts/ValueOutput.svelte"
 
 
   // Props
@@ -20,8 +22,7 @@
   let node = nodeSpy(nodeId)
   let port = portSpy(nodeId, name)
 
-  let value = $port.value ?? defaultValueForType($port.type)
-
+  $: value     = $port.value
   $: label     = $port.label
   $: type      = $port.type
   $: filled    = $port.filled
@@ -29,6 +30,8 @@
   $: multi     = $port.multi
   $: noSocket  = $port.noSocket
   //$: multiline = $port.multiline
+
+  //$: console.log('PortSpy:', nodeId, name, $port.value.value);
 
 
   // Positioning
@@ -63,18 +66,20 @@
   class:no-socket={noSocket}
   data-type={type}>
 
-  {#if mode === "in"}
-    {#if label}
-      <span class="label"> {label} </span>
-    {/if}
+  {#if label}
+    <span class="label"> {label} </span>
+  {/if}
 
+  {#if mode === "in"}
     {#if filled}
-      <ValueDisplay value={value} {type} />
+      <ValueDisplay {value} {type} />
     {:else if !multi}
-      <ValueInput value={value} {type} on:change={onChange} />
+      <ValueInput {value} {type} on:change={onChange} />
     {:else}
       <ErrorText>User input for multivalues is not supported</ErrorText>
     {/if}
+  {:else}
+    <ValueOutput {value} {type} />
   {/if}
 
   <div class="socket" />
@@ -96,8 +101,6 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-
-    //&, :global(*) { box-shadow: 0 0 2px white inset; }
 
 
     // Cable Socket
@@ -162,6 +165,7 @@
     text-align: right;
     padding-right: calc(1.6 * var(--std-pad));
     padding-left: var(--std-pad);
+    margin-top: var(--std-gap);
 
     .socket {
       right: 0;

@@ -59,7 +59,6 @@
       border-radius: 4px;
       font-size: 1.1rem;
       width: 100%;
-      max-width: 10rem;
       color: var(--text-color);
       padding-left: 0.5rem;
       padding-top: 0.2rem;

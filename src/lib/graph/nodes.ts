@@ -29,26 +29,26 @@ import { green, defer }         from "$utils"
 
 export const Const = (spec:NodeSpec) =>
   spec
-    .port('set', newPort('number', 0, { label: 'Value', noSocket: true }))
-    .port('out', newPort('number', 0, { label: 'Value' }))
+    .port('set', newPort('number', { label: 'Value', noSocket: true }))
+    .port('out', newPort('number', { label: 'Value' }))
     .compute(async (_, ports) => defer(Ok(ports.set.value)))
 
 
 export const Add = (spec:NodeSpec) =>
   MathBinary(spec)
-    .setDynamic(() => newPort('number', 0, { removable: true }))
+    .setDynamic(() => newPort('number', { removable: true }))
     .compute(reducePorts((...args) => args.reduce((a, b) => a + b, 0)))
 
 
 export const Subtract = (spec:NodeSpec) =>
   MathBinary(spec)
-    .setDynamic(() => newPort('number', 0, { removable: true }))
+    .setDynamic(() => newPort('number', { removable: true }))
     .compute(reducePorts((x, ...ys) => ys.reduce((a, b) => a - b, x)))
 
 
 export const Multiply = (spec:NodeSpec) =>
   MathBinary(spec)
-    .setDynamic(() => newPort('number', 1, { removable: true }))
+    .setDynamic(() => newPort('number', { value: 1, removable: true }))
     .compute(reducePorts((...args) => args.reduce((a, b) => a * b, 1)))
 
 
@@ -177,16 +177,15 @@ export const InputTest = (spec:NodeSpec) =>
     .port('inB', newPort('string',  { label: "x [String]",  multi: true, filled: true }))
     .port('inC', newPort('boolean', { label: "x [Boolean]", multi: true, filled: true }))
 
-
     .setPort('in3', false)
     .setPort('in4', true)
 
     .setPort('in7', 10)
-    .setPort('in8', "Butts")
+    .setPort('in8', "Cheese")
     .setPort('in9', false)
 
     .setPort('inA', [ 10, 100, 1000 ])
-    .setPort('inB', [ "Even", "more", "Butts" ])
+    .setPort('inB', [ "Even", "more", "Cheese" ])
     .setPort('inC', [ true, false, true ])
 
 

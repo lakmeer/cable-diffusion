@@ -8,7 +8,7 @@ import { get, writable, derived } from 'svelte/store'
 import { compare, format as formatValue } from '$lib/graph/value'
 import { now, red, blue, defer, sleep } from "$utils"
 
-const ENABLE_LOGGING = false
+const ENABLE_LOGGING = true
 
 
 

@@ -2,6 +2,8 @@
   import Fa from 'svelte-fa'
   import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'
 
+  import type { Value } from '$types'
+
   import { cssVar, rgbLerp } from '$utils'
 
   export let value: Value;
@@ -13,7 +15,7 @@
 
 <div class="ValueDisplay {type}">
   {#each value.value as val}
-    <span class:true={ type == 'boolean' && val }
+    <span class:true={ (type === 'boolean') && val }
           style="--border-color: var(--type-{type});--value-bg: {bgColor}">
 
       {#if type === "boolean"}
@@ -21,7 +23,6 @@
       {:else}
         {val}
       {/if}
-
     </span>
   {/each}
 </div>
@@ -56,7 +57,7 @@
       :global(svg) { transform: translate(0px, 1px); }
     }
 
-    &.boolean span.isTrue {
+    &.boolean span.true {
       color: var(--node-text-color);
       :global(svg) { transform: translate(-2px, 1px); }
     }
