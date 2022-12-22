@@ -7,7 +7,7 @@
 </script>
 
 
-<div class="DisplayOutput {type}" style="--type-color: var(--type-{type})">
+<div class="DisplayOutput {type}">
   <ValueDisplay {type} {value} align="right" />
 </div>
 

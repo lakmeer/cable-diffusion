@@ -70,7 +70,6 @@ export const updateNode = (nodeId:string, updates: any) => {
 }
 
 export const updateNodePort = (nodeId:string, portName:string, updates:any) => {
-  //console.log('updateNodePort', nodeId, portName, updates)
   mutateNodes(nodes => nodes.map(storedNode => {
     if (storedNode.id !== nodeId) return storedNode
 
@@ -85,7 +84,8 @@ export const updateNodePort = (nodeId:string, portName:string, updates:any) => {
 }
 
 export const setPortValue = (nodeId:string, portName:string, value:Value) => {
-  updateNodePort(nodeId, portName, { value })
+  console.log('setPortValue', nodeId, portName, value)
+  updateNodePort(nodeId, portName, { value, multi: value.size > 1 })
 }
 
 export const updateNodeState = (nodeId:string, updates:any) => {
@@ -230,14 +230,8 @@ const runSingleNode = async (nodeId:string, force = false) => {
   logNode(node, "yields", formatValue(resultValue))
 
 
-  // Since the last-known-value is stored on the outport, we don't have
-  // to flow values downstream if the value hasn't changed. We also don't
-  // need to check for changes if the node doesn't have an outport; in this
-  // case the node will fire every time, which is the desired behavior for
-  // nodes that only have side effects and not outputs.
-
-  if (node.outport && node.outport.value === resultValue) {
-    const changed = compare(resultValue, node.outport.value)
+  if (node.outport) {
+    const changed = !compare(resultValue, node.outport.value)
 
     if (changed) {
       logNode(node, node.outport.value.value, "=>", resultValue.value)
@@ -249,26 +243,27 @@ const runSingleNode = async (nodeId:string, force = false) => {
     }
   }
 
-  const newState = { ...node.state, value: resultValue }
-  updateNodeState(nodeId, { state: newState, busy: false, error: false, time })
+  updateNodeState(nodeId, { busy: false, error: false, time })
 
-
-  // Find connected edges and update inport value with new value
-  // Save any found nodes for the next pass
   if (node.outport) {
+    // Find connected edges and update inport value with new value
+    // Save any found nodes for the next pass
+
+    console.log("Updating outport value", nodeId, resultValue.value)
+
+    setPortValue(nodeId, 'out', resultValue)
 
     // If the yielded value changed size, update the outport and connected edge
     if (resultValue.multi !== node.outport.multi) {
       const edge = findEdge(nodeId, 'out')
       updateEdge(edge.from.id, edge.from.port, { multi: resultValue.multi })
-      updateNodePort(nodeId, 'out', { value: resultValue, multi: resultValue.multi })
     }
 
     const next = get(theGraph).edges
       .filter(e => e.from.id === nodeId) // Get edges from this outport
       .filter(e => e.to.id   !== nodeId) // Never link to self
       .map(e => {
-        updateNodePort(e.to.id, e.to.port, { value: resultValue, multi: resultValue.multi })
+        setPortValue(e.to.id, e.to.port, resultValue)
         return e.to.id
       })
 

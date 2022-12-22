@@ -4,8 +4,6 @@ import type { Value } from "$types"
 export const newValue = (type: string, val: Value['value']): Value => {
   const multi = Array.isArray(val)
 
-  console.log("Value::new -", type, val);
-
   // Type checking
   if (type != 'any') {
     if (multi) {

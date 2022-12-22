@@ -102,7 +102,6 @@
     justify-content: space-between;
     width: 100%;
 
-
     .label {
       max-width: 8rem;
     }
