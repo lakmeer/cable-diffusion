@@ -6,6 +6,8 @@
 export { default as Const    } from './Const.svelte'
 export { default as Add      } from './Math.svelte'
 export { default as Subtract } from './Math.svelte'
+export { default as Multiply } from './Math.svelte'
+export { default as Divide   } from './Math.svelte'
 
 export { default as Output   } from './Output.svelte'
 

@@ -37,7 +37,11 @@ export const Const = (spec:NodeSpec) =>
 export const Add = (spec:NodeSpec) =>
   MathBinary(spec)
     .setDynamic(() => newPort('number', { removable: true }))
-    .compute(reducePorts((...args) => args.reduce((a, b) => a + b, 0)))
+    .compute(reducePorts((...args) => {
+      let x = args.reduce((a, b) => a + b, 0)
+      console.log("Add", args, '=>', x)
+      return x
+    }))
 
 
 export const Subtract = (spec:NodeSpec) =>
@@ -114,14 +118,15 @@ export const Spread = (spec:NodeSpec) =>
 export const Range = (spec:NodeSpec) =>
   spec
     .port('min',  newPort('number', { value: 0, label: "Min" }))
-    .port('max',  newPort('number', { value: 3, label: "Max" }))
     .port('step', newPort('number', { value: 1, label: "Step" }))
-    .port('out',  newPort('number', { value: 1, label: "Value", multi: true }))
+    .port('max',  newPort('number', { value: 3, label: "Max" }))
+    .port('out',  newPort('number', { multi: true }))
     .compute(async (_, ports) => {
-      const min  = ports.min.value.value
-      const max  = ports.max.value.value
-      const step = ports.step.value.value
+      const min  = ports.min.value.value[0]
+      const max  = ports.max.value.value[0]
+      const step = ports.step.value.value[0]
 
+      console.log("Range", min, max, step)
       if (min === null || max === null || step === null) return Err('Missing input')
       if (step === 0) return Err('Step cannot be zero')
       if (min > max) return Err('Min cannot be greater than max')

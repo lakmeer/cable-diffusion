@@ -1,6 +1,6 @@
 <script lang="ts">
   import { loadSpec, allNodes, allEdges, runGraph } from '$store/the-graph';
-  import testGraph from '$data/debug'
+  import testGraph from '$data/range'
 
   import ErrorBox from '$parts/ErrorBox.svelte'
 

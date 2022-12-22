@@ -126,6 +126,15 @@ const mutateEdges = (fn:EdgeMutator) =>
 export const addEdge = (edge:Edge) =>
   mutateEdges(edges => edges.concat(edge))
 
+export const findEdge = (nodeId:string, portName:string) =>
+  get(theGraph).edges.find(e => e.from.id === nodeId && e.from.port === portName)
+
+export const updateEdge = (nodeId:string, portName:string, updates:any) =>
+  mutateEdges(edges => edges.map(storedEdge =>
+    (storedEdge.from.id !== nodeId && storedEdge.from.port !== portName)
+      ? storedEdge
+      : { ...storedEdge, ...updates }))
+
 
 
 //
@@ -220,6 +229,7 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   logNode(node, "yields", formatValue(resultValue))
 
+
   // Since the last-known-value is stored on the outport, we don't have
   // to flow values downstream if the value hasn't changed. We also don't
   // need to check for changes if the node doesn't have an outport; in this
@@ -246,11 +256,19 @@ const runSingleNode = async (nodeId:string, force = false) => {
   // Find connected edges and update inport value with new value
   // Save any found nodes for the next pass
   if (node.outport) {
+
+    // If the yielded value changed size, update the outport and connected edge
+    if (resultValue.multi !== node.outport.multi) {
+      const edge = findEdge(nodeId, 'out')
+      updateEdge(edge.from.id, edge.from.port, { multi: resultValue.multi })
+      updateNodePort(nodeId, 'out', { value: resultValue, multi: resultValue.multi })
+    }
+
     const next = get(theGraph).edges
       .filter(e => e.from.id === nodeId) // Get edges from this outport
       .filter(e => e.to.id   !== nodeId) // Never link to self
       .map(e => {
-        updateNodePort(e.to.id, e.to.port, { value: resultValue })
+        updateNodePort(e.to.id, e.to.port, { value: resultValue, multi: resultValue.multi })
         return e.to.id
       })
 

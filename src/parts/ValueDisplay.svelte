@@ -8,12 +8,13 @@
 
   export let value: Value;
   export let type: string
+  export let align: 'left' | 'right' = 'left'
 
   let bgColor = rgbLerp(cssVar('bg-color'), cssVar('node-body-color'), 0.5)
 </script>
 
 
-<div class="ValueDisplay {type}">
+<div class="ValueDisplay {type} {align}">
   {#each value.value as val}
     <span class:true={ (type === 'boolean') && val }
           style="--border-color: var(--type-{type});--value-bg: {bgColor}">
@@ -33,6 +34,9 @@
   .ValueDisplay {
     display: flex;
     gap: 4px;
+    flex-wrap: wrap;
+
+    &.right { justify-content: flex-end; }
 
     span {
       display: block;

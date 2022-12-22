@@ -1,6 +1,6 @@
 <script lang="ts">
   import { newValue } from "$lib/graph/value"
-  import { defaultValueForType } from "$utils"
+
   import { nodeSpy, portSpy, updateNodePort, removeNodePort } from "$store/the-graph"
 
   import ErrorText    from "$parts/ErrorText.svelte"
@@ -31,6 +31,7 @@
   $: noSocket  = $port.noSocket
   //$: multiline = $port.multiline
 
+  //$: name == 'out' && console.log('NodeSpy:', nodeId, $node)
   //$: console.log('PortSpy:', nodeId, name, $port.value.value);
 
 
@@ -47,12 +48,11 @@
   $: y = bcr.y + (height/2)
   $: updateNodePort(nodeId, name, { x, y })
 
+
   // Report user manually changing values
 
-  const onChange = ({ detail }) => {
-    console.log('Port.onChange', nodeId, name, detail)
+  const onChange = ({ detail }) =>
     updateNodePort(nodeId, name, { value: newValue(type, detail) })
-  }
 </script>
 
 
@@ -101,6 +101,11 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
+
+
+    .label {
+      max-width: 8rem;
+    }
 
 
     // Cable Socket
@@ -166,6 +171,8 @@
     padding-right: calc(1.6 * var(--std-pad));
     padding-left: var(--std-pad);
     margin-top: var(--std-gap);
+    border-top: 1px solid var(--shadow-color);
+    padding-top: var(--std-pad);
 
     .socket {
       right: 0;

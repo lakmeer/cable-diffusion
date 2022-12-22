@@ -4,14 +4,18 @@ import type { Value } from "$types"
 export const newValue = (type: string, val: Value['value']): Value => {
   const multi = Array.isArray(val)
 
+  console.log("Value::new -", type, val);
+
   // Type checking
   if (type != 'any') {
     if (multi) {
       if (typeof val[0] !== type) {
+        console.error(`Value::new -`, val[0], `is not ${type}`)
         throw new Error(`Value::Error - expected <${type}> got [<${typeof val[0]}>]`)
       }
     } else {
       if (typeof val !== type) {
+        console.error(`Value::new -`, val, `is not ${type}`)
         throw new Error(`Value::Error - expected <${type}> got <${typeof val}>`)
       }
     }

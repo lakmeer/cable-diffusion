@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Value } from '$types'
+  import ValueDisplay from '$parts/ValueDisplay.svelte'
 
   export let type:string;
   export let value:Value;
@@ -7,6 +8,7 @@
 
 
 <div class="DisplayOutput {type}" style="--type-color: var(--type-{type})">
+  <ValueDisplay {type} {value} align="right" />
 </div>
 
 
