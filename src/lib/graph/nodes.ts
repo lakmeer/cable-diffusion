@@ -156,17 +156,37 @@ export const Prompt = (spec:NodeSpec) =>
 
 
 
-
-
 //
 // Debugging Nodes
 //
+
+// Input Test
+//
+// Showcases all the different states that ports can be displayed in
 
 export const InputTest = (spec:NodeSpec) =>
   spec
     .port('in1', newPort('number',  { label: "Number"  }))
     .port('in2', newPort('string',  { label: "String"  }))
     .port('in3', newPort('boolean', { label: "Boolean" }))
-    .port('in4', newPort('number',  { label: "[Number]", multi: true }))
+    .port('in4', newPort('boolean', { label: "Boolean" }))
+    .port('in7', newPort('number',  { label: "x Number",  filled: true }))
+    .port('in8', newPort('string',  { label: "x String",  filled: true }))
+    .port('in9', newPort('boolean', { label: "x Boolean", filled: true }))
+    .port('inA', newPort('number',  { label: "x [Number]",  multi: true, filled: true }))
+    .port('inB', newPort('string',  { label: "x [String]",  multi: true, filled: true }))
+    .port('inC', newPort('boolean', { label: "x [Boolean]", multi: true, filled: true }))
+
+
+    .setPort('in3', false)
+    .setPort('in4', true)
+
+    .setPort('in7', 10)
+    .setPort('in8', "Butts")
+    .setPort('in9', false)
+
+    .setPort('inA', [ 10, 100, 1000 ])
+    .setPort('inB', [ "Even", "more", "Butts" ])
+    .setPort('inC', [ true, false, true ])
 
 

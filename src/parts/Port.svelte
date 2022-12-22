@@ -1,8 +1,11 @@
 <script lang="ts">
   import { newValue } from "$lib/graph/value"
+  import { defaultValueForType } from "$utils"
   import { nodeSpy, portSpy, updateNodePort, removeNodePort } from "$store/the-graph"
-  import IconButton from "$parts/IconButton.svelte"
-  import ValueInput from "$parts/ValueInput.svelte"
+
+  import ErrorText    from "$parts/ErrorText.svelte"
+  import IconButton   from "$parts/IconButton.svelte"
+  import ValueInput   from "$parts/ValueInput.svelte"
   import ValueDisplay from "$parts/ValueDisplay.svelte"
 
 
@@ -17,7 +20,7 @@
   let node = nodeSpy(nodeId)
   let port = portSpy(nodeId, name)
 
-  let value = $port.value?.value ?? defaultValueForType($port.type)
+  let value = $port.value ?? defaultValueForType($port.type)
 
   $: label     = $port.label
   $: type      = $port.type
@@ -43,15 +46,17 @@
 
   // Report user manually changing values
 
-  const onChange = () =>
-    updateNodePort(nodeId, name, { value: newValue(type, value) })
+  const onChange = ({ detail }) => {
+    console.log('Port.onChange', nodeId, name, detail)
+    updateNodePort(nodeId, name, { value: newValue(type, detail) })
+  }
 </script>
 
 
 <div name={name}
   bind:this={dom}
-  bind:clientWidth={width} 
-  bind:clientHeight={height} 
+  bind:clientWidth={width}
+  bind:clientHeight={height}
   class="Port {mode}"
   class:filled
   class:multi
@@ -64,9 +69,11 @@
     {/if}
 
     {#if filled}
-      <ValueDisplay {value} {type} {multi} />
+      <ValueDisplay value={value} {type} />
+    {:else if !multi}
+      <ValueInput value={value} {type} on:change={onChange} />
     {:else}
-      <ValueInput {value} {type} on:change={onChange} />
+      <ErrorText>User input for multivalues is not supported</ErrorText>
     {/if}
   {/if}
 
@@ -90,13 +97,7 @@
     justify-content: space-between;
     width: 100%;
 
-    .label {
-      display: block;
-      margin: 0;
-      margin-right: 1rem;
-      font-size: 1.0rem;
-      color: var(--text-color);
-    }
+    //&, :global(*) { box-shadow: 0 0 2px white inset; }
 
 
     // Cable Socket
@@ -104,20 +105,22 @@
     .socket {
       position: absolute;
       top: 50%;
-      width: var(--port-height);
-      height: var(--port-height);
+      width: var(--socket-radius);
+      height: var(--socket-radius);
       background: var(--bg-color);
       border-radius: 50%;
       border: 3px solid currentColor;
       box-shadow:
         0 0 2px 1px var(--shade-color),
         0 0 2px 1px var(--shade-color) inset,
+        0 0 6px var(--shade-color) inset,
+        0 0 6px var(--shade-color) inset,
         0 0 6px var(--shade-color) inset;
     }
 
     &.filled .socket {
-      //border-style: solid;
       background: currentColor;
+      box-shadow: 0 0 2px 1px var(--shade-color);
     }
 
     &.no-socket .socket {
@@ -125,14 +128,22 @@
     }
 
     &.multi .socket {
+      border-style: dashed;
       border-width: 1px;
+      border-color: var(--bright);
       box-shadow:
-        0 0 0 3px var(--bg-color) inset,
-        0 0 0 1px currentColor,
-        0 0 2px 1px var(--shade-color);
+        0 0 2px 1px var(--shade-color),
+        // Outside in
+        0 0 0 2px var(--bg-color) inset,
+        0 0 0 3px currentColor    inset;
     }
   }
-  
+
+  .ValueGroup {
+    display: flex;
+    gap: 4px;
+  }
+
 
   // Modes
 

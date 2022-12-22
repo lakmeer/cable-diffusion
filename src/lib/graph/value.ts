@@ -18,7 +18,7 @@ export const newValue = (type: string, val: any): Value => {
   }
 
   const value = multi ? val : [val]
- 
+
   return {
     type,
     multi,

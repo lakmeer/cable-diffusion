@@ -49,14 +49,23 @@
     ctx.bezierCurveTo(ctrlA.x, ctrlA.y, ctrlB.x, ctrlB.y, termB.x, termB.y)
 
     if (multi) {
-      ctx.lineWidth = 10 + 2 * brightness
+      ctx.globalAlpha = 0.5 + 0.5 * brightness
+      ctx.strokeStyle = 'white'
+      ctx.setLineDash([ 4, 3 ])
+      ctx.lineWidth = 10 ;
       ctx.stroke()
 
-      // Resume normal operation
+      ctx.globalAlpha = 1
+      ctx.setLineDash([])
       ctx.strokeStyle = cssVar('bg-color')
-      ctx.lineWidth = 4 - 1 * brightness
+      ctx.lineWidth = 8;
+      ctx.stroke();
+
+      // Resume normal operation
+      ctx.lineWidth = 4 + 2 * brightness
     }
 
+    ctx.strokeStyle = color
     ctx.stroke()
 
   }
