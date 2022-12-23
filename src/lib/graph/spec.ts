@@ -17,15 +17,6 @@ import * as Nodes from './nodes'
 //
 
 
-// Helpers
-
-const merge = (node:Node, delta:object) => {
-  if (typeof delta === 'function') delta = delta(node)
-  Object.assign(node, delta)
-}
-
-
-
 //
 // Fluent 'Builder' Class
 //
@@ -33,8 +24,8 @@ const merge = (node:Node, delta:object) => {
 export class NodeSpec {
 
   node:     Node;
-  deltas:   Array<object>;
-  custom:   Array<object>;
+  deltas:   Array<(node:Node) => void>;
+  custom:   Array<(node:Node) => void>;
   initFn:   (node: Node) => void;
 
   constructor (type: string, id: string) {
@@ -70,18 +61,7 @@ export class NodeSpec {
   // Sets the visual position of the node.
 
   at (x: number, y: number) {
-    this.deltas.push({ x, y })
-    return this
-  }
-
-
-  // .initialState
-  //
-  // Set the internal state as a whole object.
-  // Overwrites any existing state.
-
-  initialState (delta: any) {
-    this.deltas.push({ state: { delta } })
+    this.deltas.push(node => { node.x = x; node.y = y })
     return this
   }
 
@@ -91,19 +71,29 @@ export class NodeSpec {
   // Overwrite a single state property.
 
   state (key: string, value: any) {
-    this.deltas.push({ state: { [key]: value } })
+    this.deltas.push(node => node.state[key] = value)
     return this
   }
 
 
-  // .onUpdate
+  // .data
+  //
+  // Sets the initial dataset for bespoke node data
+
+  data (key: string, value: any) {
+    this.deltas.push(node => node.data[key] = value)
+    return this
+  }
+
+
+  // .update
   //
   // Updates anything about the node, runs before computing new values.
   // Returns a delta object to be merged into the node.
   // Different from .compute which will actually send a new value to the outport.
 
-  onUpdate (fn: (node: Node, result: Value) => NodeDelta) {
-    this.deltas.push({ updateFn: fn })
+  update (fn: (node: Node, result: Value) => NodeDelta) {
+    this.deltas.push((node) => node.config.update = fn)
     return this
   }
 
@@ -115,19 +105,7 @@ export class NodeSpec {
   // Non-blocking nodes will run every time a port value changes.
 
   setBlocking (flag: boolean = true) {
-    this.deltas.push({ noblock: !flag })
-    return this
-  }
-
-
-  // .setMultiple
-  //
-  // Enable/disable multiple mode.
-  // Multiple nodes are connected to a multi-value edge, and
-  // will run on an array of values, and pass on an array of values.
-
-  setMultiple (flag: boolean = true) {
-    this.deltas.push({ multi: flag })
+    this.deltas.push(node => node.config.blocking = flag)
     return this
   }
 
@@ -138,13 +116,10 @@ export class NodeSpec {
   // Sets whether this node can add or remove inports on the fly.
   // Takes a function that will be run to define the new port.
 
-  setDynamic (newPortFn: (id: string) => Port) {
-    this.deltas.push({
-      config: {
-        ...this.node.config,
-        dynamic: true,
-        newPort: newPortFn
-      }
+  setDynamic (fn: (node:Node) => Port) {
+    this.deltas.push(node => {
+      node.config.dynamic = true
+      node.config.newPort = fn
     })
     return this
   }
@@ -157,7 +132,7 @@ export class NodeSpec {
   // Any values received in the meantime will be discarded.
 
   debounce (ms: number) {
-    this.deltas.push({ config: { ...this.node.config, debounce: ms } })
+    this.deltas.push(node => node.config.debounce = ms)
     return this
   }
 
@@ -170,7 +145,7 @@ export class NodeSpec {
   // Doesn't return a delta
 
   compute (fn: Computer) {
-    this.deltas.push({ compute: fn })
+    this.deltas.push(node => node.compute = fn)
     return this
   }
 
@@ -181,9 +156,9 @@ export class NodeSpec {
 
   port (portId: string, port: Port) {
     if (portId === 'out') {
-      this.deltas.push({ outport: port })
+      this.deltas.push(node => node.outport = port)
     } else {
-      this.deltas.push(({ inports }) => ({ inports: { ...inports, [portId]: port } }))
+      this.deltas.push(node => node.inports[portId] = port)
     }
     return this
   }
@@ -194,15 +169,9 @@ export class NodeSpec {
   // Doesn't define a whole port but will set the manually-configured value on it's input
 
   setPort (portId: string, rawValue: any) {
-    this.deltas.push(({ inports }) => ({
-      inports: {
-        ...inports,
-        [portId]: {
-          ...inports[portId],
-          value: newValue(inports[portId].type, rawValue) 
-        }
-      }
-    }))
+    this.deltas.push(node =>
+      node.inports[portId].value =
+        newValue(node.inports[portId].type, rawValue))
     return this
   }
 
@@ -212,8 +181,8 @@ export class NodeSpec {
   // Final chance for the node to do some custom initialisation.
   // Takes and mutates the node object before finalising.
 
-  init (fn: (node: Node) => void) {
-    this.initFn = fn
+  init (fn: (node:Node) => void) {
+    this.deltas.push(node => node.config.init = fn)
     return this
   }
 
@@ -243,8 +212,8 @@ export class NodeSpec {
     }
 
     // Apply custom deltas
-    this.deltas.forEach(delta => merge(node, delta))
-    this.custom.forEach(delta => merge(node, delta))
+    this.deltas.forEach(delta => delta(node))
+    this.custom.forEach(delta => delta(node))
 
     // Final setup
     node.state.time = now() - this.node.config.debounce  // Or it will bounce immediately

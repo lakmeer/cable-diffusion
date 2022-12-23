@@ -62,8 +62,8 @@ export type PortGroup = {
 
 export type NodeState = {
   busy:    boolean,         // Whether the node is computing (compute can be async)
-  error:   false | string,  // A string here will be shown in the UI as an error
-  time:    number,          // The time the node last computed
+  error:   string | false,  // A string here will be shown in the UI as an error
+  time:    number,          // Timestamp of the last time this node was computed
   bounced: boolean,         // Whether the node got debounced last time
 }
 
@@ -77,14 +77,14 @@ export type NodeConfig = {
   blocking: boolean,      // Whether the node will ignore new values when busy
   debounce: number,       // The debounce time in ms
 
-  // A function that generates new ports
-  newPort?: () => Port,
-
   // A function that runs once to set up any special data that the node requires
-  init?:    (node:Node) => Node,
+  init?:    (node:Node) => void,
 
   // A function that runs after `compute`, to keep special data up to date
-  update?:  (node:Node, result:Value) => NodeDelta,
+  update?:  (node:Node, result:Value) => void,
+
+  // A function that generates new ports
+  newPort?: (node:Node) => Port,
 }
 
 
@@ -105,7 +105,7 @@ export type NodeData = {
 // data object and it's inport group and returns a Promise<Result<Value>>.
 // This result is what this node's outport will provide to downstream nodes.
 
-export type Computer = (state:NodeState, inports:PortGroup) =>
+export type Computer = (data:NodeData, inports:PortGroup) =>
   Promise<Result<Value>>
 
 

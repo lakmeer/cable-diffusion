@@ -52,16 +52,11 @@ export const Product = (spec:NodeSpec) =>
 
 
 // Output
-//
-// Echo's it's value to the console.
-// The only node allowed to not have an out value
-// - rnd: number - random number to trigger updates
-// - last: any   - the most recently received value
 
 export const Output = (spec:NodeSpec) =>
   spec
     .port('text', newPort('any', { label: '' }))
-    .onUpdate((_, result) => {
+    .update((_, result) => {
       green("OutputNode =>", format(result))
       return {}
     })
@@ -73,7 +68,7 @@ export const Output = (spec:NodeSpec) =>
 export const Spread = (spec:NodeSpec) =>
   spec
     .port('mid',  newPort('number', { value: 5, label: "Midpoint" }))
-    .port('step', newPort('number', { value: 3, label: "StepSize" }))
+    .port('step', newPort('number', { value: 3, label: "Step Size" }))
     .port('pts',  newPort('number', { value: 7, label: "Points" }))
     .port('out',  newPort('number', { multi: true }))
     .compute(async (_, ports) => {
@@ -113,7 +108,7 @@ export const Range = (spec:NodeSpec) =>
 
       if (min > max)
         return Err(`'Min' cannot be greater than 'max'`)
-      
+
       let result = []
       for (let i = 0; i < pts; i++) {
         result.push(min + i * (max - min) / (pts - 1))
@@ -175,7 +170,7 @@ export const Prompt = (spec:NodeSpec) =>
     .port('pos', newPort('string', { label: "Positive" }))
     .port('neg', newPort('string', { label: "Negative" }))
     .port('out', newPort('prompt', { label: "Value" }))
-    .compute(async (state, ports) => {
+    .compute(async (_, ports) => {
       const pos = ports.pos.value.value
       const neg = ports.neg.value.value
       return defer(Ok(newValue('prompt', { pos, neg })))
@@ -185,7 +180,7 @@ export const Prompt = (spec:NodeSpec) =>
 export const GenConfig = (spec:NodeSpec) =>
   spec
     .port('out', newPort('config', { label: "Value" }))
-    .compute(async (state, ports) => {
+    .compute(async (_, __) => {
       return defer(Ok(newValue('config', {})))
     })
 
@@ -211,14 +206,11 @@ export const InputTest = (spec:NodeSpec) =>
     .port('inA', newPort('number',  { label: "x [Number]",  multi: true, filled: true }))
     .port('inB', newPort('string',  { label: "x [String]",  multi: true, filled: true }))
     .port('inC', newPort('boolean', { label: "x [Boolean]", multi: true, filled: true }))
-
     .setPort('in3', false)
     .setPort('in4', true)
-
     .setPort('in7', 10)
     .setPort('in8', "Cheese")
     .setPort('in9', false)
-
     .setPort('inA', [ 10, 100, 1000 ])
     .setPort('inB', [ "Even", "more", "Cheese" ])
     .setPort('inC', [ true, false, true ])

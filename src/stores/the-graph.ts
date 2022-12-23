@@ -219,12 +219,8 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   const resultValue = result.unwrap()
 
-  // If node has an update function (optional), run that with reference to the 
-  // computed result
-  if (node.config.update) {
-    const delta = node.config.update(node, resultValue);
-    if (delta) updateNode(nodeId, delta) // ignore failure to return a delta
-  }
+  // If node has an update function, run that passing the computed result
+  if (node.config.update) node.config.update(node, resultValue);
 
   logNode(node, "yields", formatValue(resultValue))
 
@@ -247,9 +243,9 @@ const runSingleNode = async (nodeId:string, force = false) => {
   updateNodeState(nodeId, { busy: false, error: false, time })
 
   if (node.outport) {
+
     // Find connected edges and update inport value with new value
     // Save any found nodes for the next pass
-
     setPortValue(nodeId, 'out', resultValue)
 
     // If the yielded value changed size, update the outport and connected edge
@@ -284,7 +280,7 @@ export const addPort = (nodeId:string) => {
   const portId = `in${Object.keys(node.inports).length}`
   if (node.inports[portId]) throw new Error(`Port ${portId} already exists on node ${nodeId}`)
 
-  const inports = { ...node.inports, [portId]: node.config.newPort() }
+  const inports = { ...node.inports, [portId]: node.config.newPort(node) }
   updateNode(nodeId, { inports })
 }
 
