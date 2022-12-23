@@ -45,14 +45,13 @@ export type Node = {
   y:          number,
   type:       string
   state:      NodeState,
-  multi:      boolean,
   dynamic:    boolean,
   blocking:   boolean,
   debounce:   number,
   inports:    { [tag:string]: Port },
   outport:    Port,
   compute:    Computer,
-  updateFn?:  (node: Node) => NodeDelta,
+  updateFn?:  (node:Node, result:Value) => NodeDelta,
   initFn?:    (node:Node) => Node,
   newPort?:   () => Port,
 }

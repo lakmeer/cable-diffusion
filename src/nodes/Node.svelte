@@ -31,6 +31,8 @@
 
   // Style
 
+  $: ontop = !!$node.state.error
+
   $: css = `
     top:  ${$node.y}px;
     left: ${$node.x}px;
@@ -39,45 +41,52 @@
 </script>
 
 
-<div class="Node" bind:this={dom} style="{css}">
-  <div class="NodeBody">
-    <NodeTitleBar {title} bind:grip>
-      <svelte:fragment slot="left-actions">
-        {#if $node.dynamic}
-          <IconButton icon="plus" on:click={add} />
-        {/if}
-      </svelte:fragment>
+<div class="Node" class:ontop bind:this={dom} style="{css}">
+  <div class="NodeWrapper">
+    <div class="NodeBody">
+      <NodeTitleBar {title} bind:grip>
+        <svelte:fragment slot="left-actions">
+          {#if $node.dynamic}
+            <IconButton icon="plus" on:click={add} />
+          {/if}
+        </svelte:fragment>
 
-      <svelte:fragment slot="right-actions">
-        {#if $node.outport}
-          <IconButton icon="run" spin={$node.state.busy} on:click={run}  />
-        {/if}
-      </svelte:fragment>
-    </NodeTitleBar>
+        <svelte:fragment slot="right-actions">
+          {#if $node.outport}
+            <IconButton icon="run" spin={$node.state.busy} on:click={run}  />
+          {/if}
+        </svelte:fragment>
+      </NodeTitleBar>
 
-    <div class="body">
-      <div class="inputs">
-        {#each Object.entries($node.inports) as [name, port] (name) }
-          <Port nodeId={id} mode="in" name={name} />
-        {/each}
-        
-      </div>
-
-      <div class="inner">
-        <slot name="body" />
-      </div>
-
-      {#if $node.outport}
-        <div class="outputs">
-          <Port nodeId={id} mode="out" name="out" />
+      <div class="body">
+        <div class="inputs">
+          {#each Object.entries($node.inports) as [name, port] (name) }
+            <Port nodeId={id} mode="in" name={name} />
+          {/each}
+          
         </div>
-      {/if}
+
+        <div class="inner">
+          <slot name="body" />
+        </div>
+
+        {#if $node.outport}
+          <div class="outputs">
+            <Port nodeId={id} mode="out" name="out" />
+          </div>
+        {/if}
+      </div>
     </div>
+      
+    {#if $node.state.error}
+      <span class="error-message">{$node.state.error}</span>
+    {/if}
   </div>
 
   <div class="status-indicator"
     class:running={$node.state.busy}
-    class:error={$node.state.error} />
+       class:error={$node.state.error}>
+  </div>
 </div>
 
 
@@ -86,6 +95,10 @@
   .Node {
     position: absolute;
     user-select: none;
+
+    &.ontop {
+      z-index: 99;
+    }
   }
 
   .NodeBody {
@@ -114,6 +127,26 @@
       justify-content: center;
     }
   }
+
+
+  // Error reports
+
+  .NodeWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .error-message {
+      width: 100%;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: var(--node-radius);
+      padding: calc(var(--std-pad)/2) var(--std-pad);
+    }
+  }
+
+
+  // Stripy highlights
 
   .status-indicator {
     border-radius: var(--node-radius-minus-one);

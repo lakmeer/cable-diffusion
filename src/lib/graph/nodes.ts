@@ -1,12 +1,11 @@
 
-import type { Node, Port, Computer, NodeConstructor } from '$types';
 import type { NodeSpec } from '$lib/graph/spec';
 
 import { Ok, Err }              from "$lib/result"
-import { newValue }             from '$lib/graph/value';
-import { newPort, MathBinary } from '$lib/graph/templates';
+import { newValue, format }     from '$lib/graph/value';
+import { newPort, MathBinary }  from '$lib/graph/templates';
 import { reducePorts }          from '$lib/graph/computers';
-import { green, defer }         from "$utils"
+import { green, defer, collatePorts } from "$utils"
 
 
 
@@ -34,43 +33,16 @@ export const Const = (spec:NodeSpec) =>
     .compute(async (_, ports) => defer(Ok(ports.set.value)))
 
 
-export const Add = (spec:NodeSpec) =>
+export const Sum = (spec:NodeSpec) =>
   MathBinary(spec)
-    .setDynamic(() => newPort('number', { removable: true }))
-    .compute(reducePorts((...args) => {
-      let x = args.reduce((a, b) => a + b, 0)
-      console.log("Add", args, '=>', x)
-      return x
-    }))
+    .setDynamic(() => newPort('number', { value: 0, removable: true }))
+    .compute(reducePorts((...args) => args.reduce((a, b) => a + b, 0)))
 
 
-export const Subtract = (spec:NodeSpec) =>
-  MathBinary(spec)
-    .setDynamic(() => newPort('number', { removable: true }))
-    .compute(reducePorts((x, ...ys) => ys.reduce((a, b) => a - b, x)))
-
-
-export const Multiply = (spec:NodeSpec) =>
+export const Product = (spec:NodeSpec) =>
   MathBinary(spec)
     .setDynamic(() => newPort('number', { value: 1, removable: true }))
     .compute(reducePorts((...args) => args.reduce((a, b) => a * b, 1)))
-
-
-export const Divide = (spec:NodeSpec) =>
-  MathBinary(spec)
-    .compute(async (_, ports) => {
-      const args = Object.values(ports).map(p => p.value.value)
-
-      if (args.some(v => typeof v !== 'number')) {
-        return defer(Err('Divide::Error - invalid input'))
-      }
-
-      if (args[1] === 0) {
-        return defer(Err('Divide::Error - divide by zero'))
-      }
-
-      return defer(Ok(newValue('number', args[0] / args[1])))
-    })
 
 
 
@@ -89,9 +61,9 @@ export const Divide = (spec:NodeSpec) =>
 export const Output = (spec:NodeSpec) =>
   spec
     .port('text', newPort('any', { label: '' }))
-    .update((node) => {
-      console.log(green(node.inports.text.value.value))
-      return { }
+    .onUpdate((_, result) => {
+      green("OutputNode =>", format(result))
+      return {}
     })
     .compute(async (_, ports) => defer(Ok(ports.text.value)))
 
@@ -100,16 +72,25 @@ export const Output = (spec:NodeSpec) =>
 
 export const Spread = (spec:NodeSpec) =>
   spec
-    .port('mid',   newPort('number', { value: 3, label: "Midpoint" }))
-    .port('step',  newPort('number', { value: 1, label: "Step" }))
-    .port('times', newPort('number', { value: 5, label: "Times" }))
-    .port('out',   newPort('number', { label: "Value", multi: true }))
-    .compute(async (state, ports) => {
-      const mid   = ports.mid.value.value
-      const step  = ports.step.value.value
-      const times = ports.times.value.value
-      if (mid === null || step === null || times === null) return Err('Missing input')
-      return defer(Ok(newValue('number', [])))
+    .port('mid',  newPort('number', { value: 5, label: "Midpoint" }))
+    .port('step', newPort('number', { value: 3, label: "StepSize" }))
+    .port('pts',  newPort('number', { value: 7, label: "Points" }))
+    .port('out',  newPort('number', { multi: true }))
+    .compute(async (_, ports) => {
+      const { mid, step, pts } = collatePorts(ports)
+
+      if (mid === null || step === null || pts === null)
+        return Err('Missing input')
+
+      if (pts < 2)
+        return Err(`Requires at least 2 'Points'`)
+
+      let result = []
+      for (let i = 0; i < pts; i++) {
+        result.push(mid - step * (pts - 1)/2 + i * step)
+      }
+
+      return defer(Ok(newValue('number', result)))
     })
 
 
@@ -117,23 +98,28 @@ export const Spread = (spec:NodeSpec) =>
 
 export const Range = (spec:NodeSpec) =>
   spec
-    .port('min',  newPort('number', { value: 0, label: "Min" }))
-    .port('step', newPort('number', { value: 1, label: "Step" }))
-    .port('max',  newPort('number', { value: 3, label: "Max" }))
-    .port('out',  newPort('number', { multi: true }))
+    .port('min', newPort('number', { value: 1, label: "Min" }))
+    .port('pts', newPort('number', { value: 2, label: "Points" }))
+    .port('max', newPort('number', { value: 3, label: "Max" }))
+    .port('out', newPort('number', { multi: true }))
     .compute(async (_, ports) => {
-      const min  = ports.min.value.value[0]
-      const max  = ports.max.value.value[0]
-      const step = ports.step.value.value[0]
+      const { min, max, pts } = collatePorts(ports)
 
-      if (min === null || max === null || step === null) return Err('Missing input')
-      if (step === 0) return Err('Step cannot be zero')
-      if (min > max) return Err('Min cannot be greater than max')
+      if (min === null || max === null || pts === null)
+        return Err('Missing input')
 
-      const range = []
-      for (let i = min; i <= max; i += step) { range.push(i) }
+      if (pts < 2)
+        return Err(`Requires at least 2 'Points'`)
 
-      return defer(Ok(newValue('number', range)))
+      if (min > max)
+        return Err(`'Min' cannot be greater than 'max'`)
+      
+      let result = []
+      for (let i = 0; i < pts; i++) {
+        result.push(min + i * (max - min) / (pts - 1))
+      }
+
+      return defer(Ok(newValue('number', result)))
     })
 
 

@@ -36,7 +36,6 @@ export class NodeSpec {
   deltas:   Array<object>;
   custom:   Array<object>;
   initFn:   (node: Node) => void;
-  updateFn: (node: Node) => void;
 
   constructor (type: string, id: string) {
     this.node = {
@@ -53,7 +52,6 @@ export class NodeSpec {
         time:     0,
         bounced:  false,
       },
-      multi:    false,
       dynamic:  false,
       blocking: true,
       debounce: 0,
@@ -95,14 +93,14 @@ export class NodeSpec {
   }
 
 
-  // .update
+  // .onUpdate
   //
   // Updates anything about the node, runs before computing new values.
   // Returns a delta object to be merged into the node.
   // Different from .compute which will actually send a new value to the outport.
 
-  update (fn: (node: Node) => NodeDelta) {
-    this.deltas.push({ update: fn })
+  onUpdate (fn: (node: Node, result: Value) => NodeDelta) {
+    this.deltas.push({ updateFn: fn })
     return this
   }
 

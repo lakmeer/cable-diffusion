@@ -34,9 +34,9 @@ export const newPort = (type:string, others:any = {}):Port => {
 export const TwoInOneOut = (type: string) => (spec:NodeSpec) => {
   const startValue = defaultValueForType(type)
   return spec
-    .port('in0', newPort(type, startValue))
-    .port('in1', newPort(type, startValue))
-    .port('out', newPort(type, startValue, { label: 'Value' }))
+    .port('in0', newPort(type, { value: startValue }))
+    .port('in1', newPort(type, { value: startValue }))
+    .port('out', newPort(type, { label: 'Value' }))
 }
 
 

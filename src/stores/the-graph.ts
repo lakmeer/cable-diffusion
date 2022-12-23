@@ -200,7 +200,6 @@ const runSingleNode = async (nodeId:string, force = false) => {
   ports.forEach(([name, port]) => {
     if (port.type === 'any') return;
     if (port.type !== port.value.type) {
-      console.log(port);
       updateNodeState(nodeId, { busy: false, error: true, time })
       throw new TypeError(`Port ${nodeId}.${name} expected ${port.type}, got ${port.value.type}`)
     }
@@ -215,18 +214,22 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   if (!result.ok) {
     console.error(formatNode(node), "computation failed:", result.error, node.state, node.inports)
-    return updateNodeState(nodeId, { error: true, busy: false, time })
+    return updateNodeState(nodeId, { error: result.error, busy: false, time })
   }
 
   const resultValue = result.unwrap()
 
-  // If node's computer didn't set `value` correctly, there's a problem
-  if (resultValue.value === undefined || resultValue.value === null) {
-    console.error(formatNode(node), "`value` not set:", resultValue)
-    return updateNodeState(nodeId, { error: true, busy: false, time })
+  // If node has an update function (optional), run that with reference to the 
+  // computed result
+  if (node.updateFn) {
+    const delta = node.updateFn(node, resultValue);
+    if (delta) updateNode(nodeId, delta) // ignore failure to return a delta
   }
 
   logNode(node, "yields", formatValue(resultValue))
+
+
+  // Flow results onward unless output didn't change
 
   if (node.outport) {
     const changed = !compare(resultValue, node.outport.value)
