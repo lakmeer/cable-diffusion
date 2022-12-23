@@ -40,21 +40,24 @@ export class NodeSpec {
   constructor (type: string, id: string) {
     this.node = {
       id:       id,
+      type:     type,
       x:        0,
       y:        0,
-      type:     type,
       inports:  {},
       outport:  null,
       compute:  async () => Ok(newValue('number', 0)),
+      data: {},
+      config: {
+        dynamic:  false,
+        blocking: true,
+        debounce: 0,
+      },
       state: {
         busy:     false,
         error:    false,
         time:     0,
         bounced:  false,
       },
-      dynamic:  false,
-      blocking: true,
-      debounce: 0,
     } as Node;
 
     this.deltas = []
@@ -136,8 +139,13 @@ export class NodeSpec {
   // Takes a function that will be run to define the new port.
 
   setDynamic (newPortFn: (id: string) => Port) {
-    this.deltas.push({ dynamic: true })
-    this.deltas.push({ newPort: newPortFn })
+    this.deltas.push({
+      config: {
+        ...this.node.config,
+        dynamic: true,
+        newPort: newPortFn
+      }
+    })
     return this
   }
 
@@ -149,7 +157,7 @@ export class NodeSpec {
   // Any values received in the meantime will be discarded.
 
   debounce (ms: number) {
-    this.deltas.push({ debounce: ms })
+    this.deltas.push({ config: { ...this.node.config, debounce: ms } })
     return this
   }
 
@@ -239,7 +247,7 @@ export class NodeSpec {
     this.custom.forEach(delta => merge(node, delta))
 
     // Final setup
-    node.state.time = now() - this.node.debounce  // Or it will bounce immediately
+    node.state.time = now() - this.node.config.debounce  // Or it will bounce immediately
     if (this.initFn) this.initFn(node)
 
     // Sanity Checks
@@ -247,7 +255,7 @@ export class NodeSpec {
       console.warn(`Node #${node.id} was initialised with no type`)
     }
 
-    if (node.dynamic && typeof node.newPort !== 'function') {
+    if (node.config.dynamic && typeof node.config.newPort !== 'function') {
       console.warn(`Node #${node.id}<${node.type}> is dynamic but has no newPort function`)
     }
 

@@ -14,11 +14,13 @@
 
   // Todo:
   //
-  // - Multivalues
   // - Investigate state machine model for nodes
   // - Implement actor-style inbox and then use that for busy/debounce
   // - More complex test graph
+  // - Refactor Node component to simplify and better enable custom UIs
+  // - Pan and zoom
   // - Dynamic attaching cables
+  // - More interesting node types
   // - Bring in some diffusion node types
 
 

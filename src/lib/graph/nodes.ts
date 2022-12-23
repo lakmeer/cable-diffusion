@@ -123,6 +123,43 @@ export const Range = (spec:NodeSpec) =>
     })
 
 
+// Random Float, or random from an array of options
+
+export const Random = (spec:NodeSpec) =>
+  spec
+    .port('min', newPort('number', { value: 0, label: "Min" }))
+    .port('max', newPort('number', { value: 1, label: "Max" }))
+    .port('opt', newPort('number', { multi: true, label: "Options" }))
+    .port('out', newPort('number', { label: "Value" }))
+    .compute(async (_, ports) => {
+      let { min, max, opt } = collatePorts(ports)
+
+      // Random selection mode
+      if (opt.size > 0) {
+
+        if (opt.size === 1) {
+          return defer(Ok(opt.value.value[0]))
+        } else {
+          let index = Math.floor(Math.random() * opt.size)
+          return defer(Ok(opt.value.value[index]))
+        }
+
+      } else {
+
+        if (min === null || max === null)
+          return Err('Missing input')
+
+        if (min > max) {
+          let t = min
+          min = max
+          max = t
+        }
+
+        return defer(Ok(newValue('number', Math.random() * (max - min) + min)))
+      }
+    })
+
+
 
 //
 // Diffusion-Specific Nodes
@@ -142,6 +179,14 @@ export const Prompt = (spec:NodeSpec) =>
       const pos = ports.pos.value.value
       const neg = ports.neg.value.value
       return defer(Ok(newValue('prompt', { pos, neg })))
+    })
+
+
+export const GenConfig = (spec:NodeSpec) =>
+  spec
+    .port('out', newPort('config', { label: "Value" }))
+    .compute(async (state, ports) => {
+      return defer(Ok(newValue('config', {})))
     })
 
 

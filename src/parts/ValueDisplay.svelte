@@ -57,8 +57,9 @@
       margin: 0;
       height: calc(var(--port-height) - 2px);
       border-radius: 4px;
-      padding: 0.1rem 0.5rem;
-      box-shadow: 0px 0px 0px 0.6px var(--border-color);
+      padding: 0.0rem 0.5rem;
+      //box-shadow: 0px 0px 0px 0.6px var(--border-color);
+      border-bottom: 1px solid var(--border-color);
       background: var(--value-bg);
       color: var(--node-text-color);
       font-size: 0.8rem;

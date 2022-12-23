@@ -46,7 +46,7 @@
     <div class="NodeBody">
       <NodeTitleBar {title} bind:grip>
         <svelte:fragment slot="left-actions">
-          {#if $node.dynamic}
+          {#if $node.config.dynamic}
             <IconButton icon="plus" on:click={add} />
           {/if}
         </svelte:fragment>

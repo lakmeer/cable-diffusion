@@ -169,7 +169,7 @@ const runSingleNode = async (nodeId:string, force = false) => {
     return console.warn("Couldn't find node with id", nodeId)
   }
 
-  if (node.state.busy && node.blocking) {
+  if (node.state.busy && node.config.blocking) {
     return warnNode(node, "is busy");
   }
 
@@ -182,13 +182,13 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   const timeSinceLastRun = time - node.state.time
 
-  if (timeSinceLastRun < node.debounce) {
+  if (timeSinceLastRun < node.config.debounce) {
     if (!node.state.bounced) {
       updateNodeState(nodeId, { bounced: true, time })
       setTimeout(() => {
         runSingleNode(nodeId)
-      }, node.debounce - timeSinceLastRun)
-      return warnNode(node, "debounced, waiting", node.debounce - timeSinceLastRun, "ms")
+      }, node.config.debounce - timeSinceLastRun)
+      return warnNode(node, "debounced, waiting", node.config.debounce - timeSinceLastRun, "ms")
     }
   }
 
@@ -221,8 +221,8 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   // If node has an update function (optional), run that with reference to the 
   // computed result
-  if (node.updateFn) {
-    const delta = node.updateFn(node, resultValue);
+  if (node.config.update) {
+    const delta = node.config.update(node, resultValue);
     if (delta) updateNode(nodeId, delta) // ignore failure to return a delta
   }
 
@@ -284,7 +284,7 @@ export const addPort = (nodeId:string) => {
   const portId = `in${Object.keys(node.inports).length}`
   if (node.inports[portId]) throw new Error(`Port ${portId} already exists on node ${nodeId}`)
 
-  const inports = { ...node.inports, [portId]: node.newPort() }
+  const inports = { ...node.inports, [portId]: node.config.newPort() }
   updateNode(nodeId, { inports })
 }
 
@@ -326,7 +326,6 @@ export const loadSpec = (spec: GraphSpec) => {
 
     if (fromNode.outport.multi) {
       edge.multi = true
-      toNode.state.multi = true
       toNode.inports[edge.to.port].multi = true
     }
 
