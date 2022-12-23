@@ -8,7 +8,7 @@ import { get, writable, derived } from 'svelte/store'
 import { compare, format as formatValue } from '$lib/graph/value'
 import { now, red, blue, defer, sleep } from "$utils"
 
-const ENABLE_LOGGING = false
+const ENABLE_LOGGING = true
 
 
 
@@ -98,6 +98,13 @@ export const updateNodeState = (nodeId:string, updates:any) => {
     }
   }))
 }
+
+export const updateNodeData = (nodeId:string, key:string, value:any) =>
+  mutateNodes(nodes => nodes.map(storedNode => {
+    if (storedNode.id !== nodeId) return storedNode
+    const newData = { ...storedNode.data, [key]: value }
+    return { ...storedNode, data: newData }
+  }))
 
 export const removeNodePort = (nodeId:string, portName:string) => {
   mutateNodes(nodes => nodes.map(storedNode => {
@@ -195,20 +202,20 @@ const runSingleNode = async (nodeId:string, force = false) => {
 
   // Port Typechecking
 
-  const ports = Object.entries(node.inports);
-
-  ports.forEach(([name, port]) => {
-    if (port.type === 'any') return;
+  for (const name in node.inports) {
+    const port = node.inports[name]
+    if (port.type === 'any') continue
     if (port.type !== port.value.type) {
-      updateNodeState(nodeId, { busy: false, error: true, time })
-      throw new TypeError(`Port ${nodeId}.${name} expected ${port.type}, got ${port.value.type}`)
+      const errorText = `${name} expected <${port.type}>, got <${port.value.type}>`
+      console.error(node.id + '.' + name, errorText)
+      return updateNodeState(nodeId, { busy: false, error: errorText, time })
     }
-  });
+  }
 
 
   // Actual computation
 
-  const result:Result<Value> = await node.compute(node.state, node.inports)
+  const result:Result<Value> = await node.compute(node.data, node.inports)
 
   //await sleep(500)
 

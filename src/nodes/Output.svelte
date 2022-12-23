@@ -1,12 +1,12 @@
 <script lang="ts">
+  import { nodeSpy } from '$store/the-graph'
+
   import Node from "$nodes/Node.svelte"
 
-  import { nodeSpy } from '$store/the-graph';
+  export let id: string
+  let node = nodeSpy(id)
 
-  export let id: string;
-  let node = nodeSpy(id);
-
-  $: displayValue = $node.inports.text.value.value;
+  $: displayValue = $node.inports.text.value.value
 </script>
 
 

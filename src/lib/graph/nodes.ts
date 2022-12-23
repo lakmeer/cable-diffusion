@@ -1,12 +1,13 @@
 
-import type { NodeSpec } from '$lib/graph/spec';
+import type { NodeSpec } from '$lib/graph/spec'
 
 import { Ok, Err }              from "$lib/result"
-import { newValue, format }     from '$lib/graph/value';
-import { newPort, MathBinary }  from '$lib/graph/templates';
-import { reducePorts }          from '$lib/graph/computers';
+import { newValue, format }     from '$lib/graph/value'
+import { newPort, MathBinary }  from '$lib/graph/templates'
+import { reducePorts }          from '$lib/graph/computers'
 import { green, defer, collatePorts } from "$utils"
 
+const { random, floor } = Math
 
 
 //
@@ -118,29 +119,46 @@ export const Range = (spec:NodeSpec) =>
     })
 
 
-// Random Float, or random from an array of options
+// List
+
+export const List = (spec:NodeSpec) =>
+  spec
+    .data('type', 'number')
+    .data('items', [])
+    .port('out', newPort('any', { multi: true }))
+    .compute(async (data, _) => {
+      console.log("List::Compute", data.items)
+      return defer(Ok(newValue(data.type, data.items.map(x => x.value[0]))))
+    })
+    .update((node, result) => { 
+      console.log("List::Update", result)
+      node.outport.type = result.type
+    })
+    .init((node) => {
+      node.data.items = node.data.items.map((item) => {
+        if (item instanceof Object && item.type) return item
+        else return newValue(node.data.type, item)
+      })
+    })
+
+
+// Random
 
 export const Random = (spec:NodeSpec) =>
   spec
     .port('min', newPort('number', { value: 0, label: "Min" }))
     .port('max', newPort('number', { value: 1, label: "Max" }))
-    .port('opt', newPort('number', { multi: true, label: "Options" }))
-    .port('out', newPort('number', { label: "Value" }))
+    .port('opt', newPort('any',    { multi: true, label: "Options" }))
+    .port('out', newPort('any'))
     .compute(async (_, ports) => {
-      let { min, max, opt } = collatePorts(ports)
+      let { min, max } = collatePorts(ports)
+      let opt = ports.opt.value
 
       // Random selection mode
       if (opt.size > 0) {
-
-        if (opt.size === 1) {
-          return defer(Ok(opt.value.value[0]))
-        } else {
-          let index = Math.floor(Math.random() * opt.size)
-          return defer(Ok(opt.value.value[index]))
-        }
-
+        let index = floor(random() * opt.size)
+        return defer(Ok(newValue(opt.type, opt.value[index])))
       } else {
-
         if (min === null || max === null)
           return Err('Missing input')
 
@@ -153,7 +171,11 @@ export const Random = (spec:NodeSpec) =>
         return defer(Ok(newValue('number', Math.random() * (max - min) + min)))
       }
     })
+    .update((node, result) => {
+      console.log('random:update', result)
 
+      node.outport.type = result.type
+    })
 
 
 //

@@ -3,7 +3,6 @@
 
   import { nodeSpy, portSpy, updateNodePort, removeNodePort } from "$store/the-graph"
 
-  import ErrorText    from "$parts/ErrorText.svelte"
   import IconButton   from "$parts/IconButton.svelte"
 
   import ValueInput   from "$parts/ValueInput.svelte"
@@ -75,8 +74,6 @@
       <ValueDisplay {value} {type} />
     {:else if !multi}
       <ValueInput {value} {type} on:change={onChange} />
-    {:else}
-      <ErrorText>User input for multivalues is not supported</ErrorText>
     {/if}
   {:else}
     <ValueOutput {value} {type} />

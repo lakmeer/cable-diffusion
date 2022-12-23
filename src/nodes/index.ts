@@ -4,6 +4,8 @@
 //
 
 export { default as Const    } from './Const.svelte'
+export { default as List     } from './List.svelte'
+
 export { default as Sum      } from './Generic.svelte'
 export { default as Product  } from './Generic.svelte'
 

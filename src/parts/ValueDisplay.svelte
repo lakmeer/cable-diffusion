@@ -15,7 +15,6 @@
   $: shownValues = value.size >= 7
     ? value.value.slice(0, 2).concat('...').concat(value.value.slice(-2))
     : value.value
-
 </script>
 
 
@@ -24,20 +23,28 @@
   {#each shownValues as val}
 
     {#if val !== "..."}
+
       <span class="value" class:true={ (type === 'boolean') && val }
             style="--border-color: var(--type-{type});--value-bg: {bgColor}">
 
         {#if type === "boolean"}
           <Fa icon={val ? faCheck : faTimes} />
+        {:else if type === "number"}
+          { val % 1 === 0 ? val : val.toFixed(4) }
         {:else}
-          {val}
+          { val }
         {/if}
       </span>
+
     {:else}
+
       <span class="ellipsis">
         <Fa icon={faEllipsis} />
       </span>
+
     {/if}
+  {:else}
+    Nothing to show: { JSON.stringify(shownValues) }
   {/each}
 
 </div>

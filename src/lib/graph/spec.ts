@@ -26,7 +26,6 @@ export class NodeSpec {
   node:     Node;
   deltas:   Array<(node:Node) => void>;
   custom:   Array<(node:Node) => void>;
-  initFn:   (node: Node) => void;
 
   constructor (type: string, id: string) {
     this.node = {
@@ -92,7 +91,7 @@ export class NodeSpec {
   // Returns a delta object to be merged into the node.
   // Different from .compute which will actually send a new value to the outport.
 
-  update (fn: (node: Node, result: Value) => NodeDelta) {
+  update (fn: (node: Node, result: Value) => void) {
     this.deltas.push((node) => node.config.update = fn)
     return this
   }
@@ -217,7 +216,7 @@ export class NodeSpec {
 
     // Final setup
     node.state.time = now() - this.node.config.debounce  // Or it will bounce immediately
-    if (this.initFn) this.initFn(node)
+    if (node.config.init) node.config.init(node)
 
     // Sanity Checks
     if (node.type === 'unknown') {
@@ -227,6 +226,8 @@ export class NodeSpec {
     if (node.config.dynamic && typeof node.config.newPort !== 'function') {
       console.warn(`Node #${node.id}<${node.type}> is dynamic but has no newPort function`)
     }
+
+    //console.log(`Node #${node.id} is ready:`, node)
 
     return node;
   }

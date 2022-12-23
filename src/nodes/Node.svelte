@@ -46,6 +46,8 @@
     <div class="NodeBody">
       <NodeTitleBar {title} bind:grip>
         <svelte:fragment slot="left-actions">
+          <slot name="extra-actions" />
+
           {#if $node.config.dynamic}
             <IconButton icon="plus" on:click={add} />
           {/if}
@@ -138,6 +140,7 @@
 
     .error-message {
       width: 100%;
+      max-width: 300px;
       font-weight: bold;
       background: rgba(0, 0, 0, 0.7);
       border-radius: var(--node-radius);

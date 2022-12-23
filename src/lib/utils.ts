@@ -79,7 +79,7 @@ export const rgbLerp = (hexA, hexB, t) => {
 
 export const defaultValueForType = (type):Value['value'] => {
   switch (type) {
-    case 'any':     return 0
+    case 'any':     return []
     case 'number':  return 0
     case 'string':  return ''
     case 'boolean': return false
