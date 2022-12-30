@@ -11,15 +11,14 @@
 
   runGraph();
 
-
   // Todo:
   //
-  // - Investigate state machine model for nodes
+  // - Investigate state machine model for nodes?
   // - Implement actor-style inbox and then use that for busy/debounce
-  // - More complex test graph
   // - Refactor Node component to simplify and better enable custom UIs
+  // - More complex test graph
   // - Pan and zoom
-  // - Dynamic attaching cables
+  // - Check new connected cables are valid
   // - More interesting node types
   // - Bring in some diffusion node types
 

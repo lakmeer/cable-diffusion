@@ -158,21 +158,22 @@ export const Random = (spec:NodeSpec) =>
       if (opt.size > 0) {
         let index = floor(random() * opt.size)
         return defer(Ok(newValue(opt.type, opt.value[index])))
-      } else {
-        if (min === null || max === null)
-          return Err('Missing input')
-
-        if (min > max) {
-          let t = min
-          min = max
-          max = t
-        }
-
-        return defer(Ok(newValue('number', Math.random() * (max - min) + min)))
       }
+
+      // Random float mode
+      if (min === null || max === null)
+        return Err('Missing input')
+
+      if (min > max) {
+        let t = min
+        min = max
+        max = t
+      }
+
+      return defer(Ok(newValue('number', Math.random() * (max - min) + min)))
     })
     .update((node, result) => {
-      console.log('random:update', result)
+      console.log('random:update', result.type)
 
       node.outport.type = result.type
     })

@@ -2,6 +2,7 @@
   import { newValue } from "$lib/graph/value"
 
   import { nodeSpy, portSpy, updateNodePort, removeNodePort } from "$store/the-graph"
+  import { startCable, completeCable } from "$store/sockets"
 
   import IconButton   from "$parts/IconButton.svelte"
 
@@ -52,6 +53,16 @@
 
   const onChange = ({ detail }) =>
     updateNodePort(nodeId, name, { value: newValue(type, detail) })
+
+
+  // Report socket click initiating new cable
+
+  const onSocketClick = (event) =>
+    startCable(nodeId, name, type, event.clientX, event.clientY)
+
+  const onSocketRelease = () =>
+    completeCable(nodeId, name)
+
 </script>
 
 
@@ -79,7 +90,9 @@
     <ValueOutput {value} {type} />
   {/if}
 
-  <div class="socket" />
+  <div class="socket" on:mousedown={onSocketClick} on:mouseup={onSocketRelease}>
+    <div class="hitbox"></div>
+  </div>
 
   {#if removable}
     <IconButton icon="minus" small subtle on:click={() => removeNodePort(nodeId, name)} />
@@ -120,6 +133,17 @@
         0 0 6px var(--shade-color) inset,
         0 0 6px var(--shade-color) inset,
         0 0 6px var(--shade-color) inset;
+
+      .hitbox {
+        position: absolute;
+        width: calc(var(--socket-radius) * 2);
+        height: calc(var(--socket-radius) * 2);
+        opacity: 0;
+        transform: translate(-50%, -50%);
+        top: 50%;
+        left: 50%;
+        border-radius: 50%;
+      }
     }
 
     &.filled .socket {

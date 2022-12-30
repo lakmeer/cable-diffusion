@@ -23,7 +23,6 @@
   {#each shownValues as val}
 
     {#if val !== "..."}
-
       <span class="value" class:true={ (type === 'boolean') && val }
             style="--border-color: var(--type-{type});--value-bg: {bgColor}">
 
@@ -32,6 +31,7 @@
         {:else if type === "number"}
           { val % 1 === 0 ? val : val.toFixed(4) }
         {:else}
+          { console.log("VAL:", val, type) }
           { val }
         {/if}
       </span>
